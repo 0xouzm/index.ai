@@ -103,16 +103,26 @@ AI 回答策略采用**分层降级**机制：
 └─────────────┴─────────────┴─────────────┴──────────────────┘
 ```
 
-### 7.2 技术选型
+### 7.2 技术选型（Cloudflare 全家桶）
 
-| 层 | 选型 | 说明 |
-|---|---|---|
-| 后端 | Python + FastAPI | 使用 `uv` 管理，强类型 |
-| 前端 | Next.js 15 + React 19 + Tailwind v4 | Web 1.0 风格 UI |
-| 关系数据库 | PostgreSQL | 存储频道/精选集/文档元数据 |
-| 向量数据库 | Qdrant | 单 Collection + namespace 过滤 |
+| 需求 | Cloudflare 方案 | 说明 |
+|------|-----------------|------|
+| 前端托管 | **Pages** | Next.js 15 + React 19 + Tailwind v4 |
+| API 服务 | **Workers** (Hono) | TypeScript，边缘部署 |
+| 长时任务 | **Containers** | 文档解析、Embedding |
+| 关系数据库 | **D1** (SQLite) | 存储频道/精选集/文档元数据 |
+| 向量数据库 | **Vectorize** | 单索引 + namespace 过滤 |
+| 对象存储 | **R2** | 文档原文件存储 |
+| 缓存 | **KV** | 热点数据缓存 |
+| 任务队列 | **Queues** | 异步摄入任务 |
+| AI 代理 | **AI Gateway** | LLM 调用代理（缓存+日志） |
 | LLM | Claude API | 生成层 |
 | Embedding | OpenAI `text-embedding-3-large` | 向量化 |
+
+**选择 Cloudflare 的理由**：
+- 免费额度慷慨，MVP 阶段零成本
+- 边缘部署，全球低延迟
+- 一站式服务，运维简单
 
 ### 7.3 数据模型
 
