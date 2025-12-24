@@ -1,0 +1,45 @@
+name = "index-ai-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "indexai"
+database_id = "placeholder-will-be-replaced-after-creation"
+
+# Vectorize Index (uncomment after creating)
+# [[vectorize]]
+# binding = "VECTORIZE"
+# index_name = "index-ai-chunks"
+
+# R2 Bucket (uncomment after creating)
+# [[r2_buckets]]
+# binding = "DOCUMENTS"
+# bucket_name = "index-ai-documents"
+
+# KV Namespaces (uncomment after creating)
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "placeholder"
+
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "placeholder"
+
+# Queues (uncomment after creating)
+# [[queues.producers]]
+# binding = "INGESTION_QUEUE"
+# queue = "ingestion-queue"
+
+# AI Gateway
+[ai]
+binding = "AI"
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "development"
+
+# Development settings
+[dev]
+port = 8787
