@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { getChannel, getCollection, getDocuments } from "@/lib/mock-data";
+import { sendChatQuery } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { Document, ChatMessage } from "@/types";
 
@@ -51,30 +52,54 @@ export default function CollectionPage({ params }: CollectionPageProps) {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const question = inputValue;
     setInputValue("");
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Call the API
+      const response = await sendChatQuery({
+        collectionId: collection.id,
+        question,
+        documentIds: selectedDoc ? [selectedDoc.id] : undefined,
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      const data = response.data!;
       const aiMessage: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         role: "assistant",
-        content: `Based on the documents in this collection, I found relevant information about "${inputValue}". The DeepSeek-V3 model uses a Mixture-of-Experts architecture with 671B total parameters. [Source: DeepSeek-V3 Technical Report, P.3]`,
-        citations: [
+        content: data.answer,
+        citations: data.citations,
+        source: data.source,
+        createdAt: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      // Fallback to mock response if API fails
+      console.error("API error, using fallback:", error);
+      const aiMessage: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        role: "assistant",
+        content: `[Offline Mode] I found relevant information about "${question}" in this collection. The DeepSeek-V3 model uses a Mixture-of-Experts architecture with 671B total parameters.`,
+        citations: documents.length > 0 ? [
           {
-            documentId: "doc-1",
-            documentTitle: "DeepSeek-V3 Technical Report",
-            chunkContent:
-              "DeepSeek-V3 is a Mixture-of-Experts (MoE) language model with 671B total parameters...",
-            page: 3,
+            documentId: documents[0].id,
+            documentTitle: documents[0].title,
+            chunkContent: "Sample content from the document...",
+            page: 1,
           },
-        ],
+        ] : [],
         source: "archive",
         createdAt: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, aiMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (

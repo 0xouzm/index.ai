@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import type { Env } from "./types/env";
+import { authRouter } from "./routes/auth";
 import { channelsRouter } from "./routes/channels";
 import { collectionsRouter } from "./routes/collections";
 import { chatRouter } from "./routes/chat";
@@ -28,6 +29,7 @@ app.get("/", (c) => {
 });
 
 // API Routes
+app.route("/api/v1/auth", authRouter);
 app.route("/api/v1/channels", channelsRouter);
 app.route("/api/v1/collections", collectionsRouter);
 app.route("/api/v1/chat", chatRouter);
