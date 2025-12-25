@@ -5,15 +5,12 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
-import { SourceSelector, ChatMessage, StudioPanel, ThinkingIndicator, type ThinkingPhase } from "@/components/chat";
+import { SourceSelector, ChatMessage, StudioPanel, LoadingIndicator } from "@/components/chat";
 import { UploadDialog } from "@/components/documents/upload-dialog";
-import { getCollection, sendChatQuery } from "@/lib/api";
+import { getCollection } from "@/lib/api";
+import { useChat } from "@/hooks/use-chat";
 import { cn } from "@/lib/utils";
-import type {
-  Document,
-  ChatMessage as ChatMessageType,
-  Collection,
-} from "@/types";
+import type { Document, Collection } from "@/types";
 
 export const runtime = "edge";
 
@@ -26,16 +23,11 @@ export default function CollectionPage({ params }: CollectionPageProps) {
   const t = useTranslations("chat");
   const tc = useTranslations("common");
 
-  const [collection, setCollection] = useState<
-    (Collection & { documents: Document[] }) | null
-  >(null);
+  const [collection, setCollection] = useState<(Collection & { documents: Document[] }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
-  const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [thinkingPhase, setThinkingPhase] = useState<ThinkingPhase | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [showMobileSources, setShowMobileSources] = useState(false);
   const [showStudio, setShowStudio] = useState(true);
@@ -43,9 +35,14 @@ export default function CollectionPage({ params }: CollectionPageProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const { messages, setMessages, isLoading, sendMessage } = useChat({
+    collectionId: collection?.id || "",
+    selectedDocIds,
+  });
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -56,19 +53,17 @@ export default function CollectionPage({ params }: CollectionPageProps) {
       setCollection(result.data);
       setSelectedDocIds(new Set(result.data.documents.map((d) => d.id)));
       if (messages.length === 0) {
-        setMessages([
-          {
-            id: "msg-welcome",
-            role: "assistant",
-            content: t("welcome.greeting", { title: result.data.title }),
-            source: "archive",
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        setMessages([{
+          id: "msg-welcome",
+          role: "assistant",
+          content: t("welcome.greeting", { title: result.data.title }),
+          source: "archive",
+          createdAt: new Date().toISOString(),
+        }]);
       }
     }
     setLoading(false);
-  }, [slug, collectionSlug, messages.length, t]);
+  }, [slug, collectionSlug, messages.length, t, setMessages]);
 
   useEffect(() => {
     fetchData();
@@ -85,90 +80,20 @@ export default function CollectionPage({ params }: CollectionPageProps) {
   const handleToggleAll = useCallback(() => {
     if (!collection) return;
     const allIds = collection.documents.map((d) => d.id);
-    setSelectedDocIds((prev) =>
-      prev.size === allIds.length ? new Set() : new Set(allIds)
-    );
+    setSelectedDocIds((prev) => (prev.size === allIds.length ? new Set() : new Set(allIds)));
   }, [collection]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading || !collection) return;
-
-    const userMessage: ChatMessageType = {
-      id: `msg-${Date.now()}`,
-      role: "user",
-      content: inputValue,
-      createdAt: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
     const question = inputValue;
     setInputValue("");
-    setIsLoading(true);
-    setThinkingPhase("searching");
-
-    // Auto-advance thinking phases
-    const timer1 = setTimeout(() => setThinkingPhase("analyzing"), 1500);
-    const timer2 = setTimeout(() => setThinkingPhase("generating"), 3500);
-
-    try {
-      const result = await sendChatQuery({
-        collectionId: collection.id,
-        question,
-        documentIds: selectedDocIds.size > 0 ? Array.from(selectedDocIds) : undefined,
-      });
-
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-
-      if (result.error || !result.data) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `msg-${Date.now() + 1}`,
-            role: "assistant",
-            content: `Error: ${result.error || "Failed to get response"}`,
-            source: "archive",
-            createdAt: new Date().toISOString(),
-          },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `msg-${Date.now() + 1}`,
-            role: "assistant",
-            content: result.data.answer,
-            source: result.data.source,
-            citations: result.data.citations,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
-      }
-    } catch (err) {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `msg-${Date.now() + 1}`,
-          role: "assistant",
-          content: `Error: ${err instanceof Error ? err.message : "Failed"}`,
-          source: "archive",
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-      setThinkingPhase(null);
-    }
+    await sendMessage(question);
   };
 
   const lastUpdated = useMemo(() => {
     if (!collection) return null;
     return new Date(collection.updatedAt).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+      year: "numeric", month: "long", day: "numeric",
     });
   }, [collection]);
 
@@ -179,9 +104,7 @@ export default function CollectionPage({ params }: CollectionPageProps) {
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="w-10 h-10 border-3 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-[var(--color-muted-foreground)]">
-              {t("loading")}
-            </p>
+            <p className="text-sm text-[var(--color-muted-foreground)]">{t("loading")}</p>
           </div>
         </div>
       </div>
@@ -197,14 +120,9 @@ export default function CollectionPage({ params }: CollectionPageProps) {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
       <Header />
+      <UploadDialog collectionId={collection.id} isOpen={showUpload} onClose={() => setShowUpload(false)} onSuccess={() => fetchData()} />
 
-      <UploadDialog
-        collectionId={collection.id}
-        isOpen={showUpload}
-        onClose={() => setShowUpload(false)}
-        onSuccess={() => fetchData()}
-      />
-
+      {/* Mobile header */}
       <div className="lg:hidden border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between">
         <button onClick={() => setShowMobileSources(true)} className="flex items-center gap-2 text-sm">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -216,10 +134,8 @@ export default function CollectionPage({ params }: CollectionPageProps) {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        <aside className={cn(
-          "w-[280px] flex-shrink-0 border-r border-[var(--color-border)] hidden lg:flex flex-col",
-          showMobileSources && "!flex fixed inset-0 z-50 w-full bg-[var(--color-background)]"
-        )}>
+        {/* Sources Sidebar */}
+        <aside className={cn("w-[280px] flex-shrink-0 border-r border-[var(--color-border)] hidden lg:flex flex-col", showMobileSources && "!flex fixed inset-0 z-50 w-full bg-[var(--color-background)]")}>
           {showMobileSources && (
             <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
               <h2 className="font-display font-semibold">{t("sources.title")}</h2>
@@ -231,7 +147,9 @@ export default function CollectionPage({ params }: CollectionPageProps) {
           <SourceSelector documents={documents} selectedIds={selectedDocIds} onToggle={handleToggleDoc} onToggleAll={handleToggleAll} onAddClick={() => { setShowUpload(true); setShowMobileSources(false); }} />
         </aside>
 
+        {/* Main Chat Area */}
         <main className="flex-1 flex flex-col min-w-0">
+          {/* Desktop Header */}
           <div className="hidden lg:block border-b border-[var(--color-border)] px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
@@ -248,14 +166,16 @@ export default function CollectionPage({ params }: CollectionPageProps) {
             </div>
           </div>
 
+          {/* Messages */}
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
               {messages.map((message) => <ChatMessage key={message.id} message={message} />)}
-              {thinkingPhase && <ThinkingIndicator phase={thinkingPhase} />}
+              {isLoading && <LoadingIndicator />}
               <div ref={messagesEndRef} />
             </div>
           </div>
 
+          {/* Input */}
           <div className="border-t border-[var(--color-border)] bg-[var(--color-background)]">
             <div className="max-w-3xl mx-auto px-4 py-4">
               <div className={cn("flex items-end gap-3 p-3 rounded-2xl bg-[var(--color-card)] border border-[var(--color-border)] shadow-sm focus-within:shadow-md focus-within:border-[var(--color-accent)]/30 transition-all")}>
@@ -272,6 +192,7 @@ export default function CollectionPage({ params }: CollectionPageProps) {
           </div>
         </main>
 
+        {/* Studio Panel */}
         <aside className={cn("flex-shrink-0 border-l border-[var(--color-border)] hidden xl:block", showStudio ? "w-[300px]" : "w-[48px]")}>
           {showStudio ? (
             <StudioPanel collection={collection} selectedDocIds={selectedDocIds} isCollapsed={!showStudio} onToggle={() => setShowStudio((prev) => !prev)} />

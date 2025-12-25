@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../types/env";
 import { retrieveChunks, webSearch } from "../services/retrieval";
-import { generateAnswer, streamAnswer } from "../services/generation";
+import { generateAnswer } from "../services/generation";
+import { cleanAnswerFormat } from "../services/prompt-builder";
 
 export const chatRouter = new Hono<AppEnv>();
 
@@ -109,7 +110,7 @@ chatRouter.post("/query", async (c) => {
     );
 
     return c.json({
-      answer: generationResult.answer,
+      answer: cleanAnswerFormat(generationResult.answer),
       citations: generationResult.citations,
       source,
       conversationId: conversationId || crypto.randomUUID(),
@@ -120,141 +121,6 @@ chatRouter.post("/query", async (c) => {
       { error: error instanceof Error ? error.message : "Failed to process query" },
       500
     );
-  }
-});
-
-// Streaming chat query endpoint
-chatRouter.post("/query/stream", async (c) => {
-  try {
-    const body = await c.req.json<QueryRequest>();
-    const { collectionId, question, documentIds, conversationId } = body;
-
-    if (!collectionId || !question) {
-      return c.json({ error: "collectionId and question are required" }, 400);
-    }
-
-    const collection = await c.env.DB.prepare(
-      "SELECT * FROM collections WHERE id = ?"
-    )
-      .bind(collectionId)
-      .first<{ id: string; title: string; vector_namespace: string }>();
-
-    if (!collection) {
-      return c.json({ error: "Collection not found" }, 404);
-    }
-
-    const { results: documents } = await c.env.DB.prepare(
-      "SELECT id, title FROM documents WHERE collection_id = ?"
-    )
-      .bind(collectionId)
-      .all<{ id: string; title: string }>();
-
-    const documentTitles = new Map<string, string>();
-    for (const doc of documents || []) {
-      documentTitles.set(doc.id, doc.title);
-    }
-
-    if (!c.env.KIMI_API_KEY) {
-      return c.json({ error: "KIMI_API_KEY not configured" }, 500);
-    }
-
-    const retrievalResult = await retrieveChunks(
-      question,
-      collection.vector_namespace,
-      c.env,
-      { documentIds }
-    );
-
-    let source: "archive" | "web" = "archive";
-    let chunks = retrievalResult.chunks;
-
-    if (!retrievalResult.hasRelevantResults) {
-      source = "web";
-      const webResults = await webSearch(question, c.env);
-      chunks = webResults.results.map((result, idx) => ({
-        id: `web-${idx}`,
-        documentId: `web-${idx}`,
-        content: `${result.title}\n\n${result.content}\n\nSource: ${result.url}`,
-        score: 1.0,
-        metadata: {},
-      }));
-    }
-
-    const convId = conversationId || crypto.randomUUID();
-
-    if (chunks.length === 0) {
-      // Return SSE format even for no results
-      const noResultMessage = "I couldn't find relevant information. Please try rephrasing your question.";
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: "start", source, conversationId: convId })}\n\n`)
-          );
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: "content", content: noResultMessage })}\n\n`)
-          );
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: "end", citations: [] })}\n\n`)
-          );
-          controller.close();
-        },
-      });
-
-      return new Response(stream, {
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-        },
-      });
-    }
-
-    // Create SSE stream
-    const stream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder();
-
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ type: "start", source, conversationId: convId })}\n\n`)
-        );
-
-        try {
-          const generator = streamAnswer(question, chunks, documentTitles, c.env, { source });
-          let result = await generator.next();
-
-          while (!result.done) {
-            const content = result.value as string;
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ type: "content", content })}\n\n`)
-            );
-            result = await generator.next();
-          }
-
-          const citations = result.value;
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: "end", citations })}\n\n`)
-          );
-        } catch (err) {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: "error", error: String(err) })}\n\n`)
-          );
-        }
-
-        controller.close();
-      },
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    });
-  } catch (error) {
-    console.error("Error in stream query:", error);
-    return c.json({ error: error instanceof Error ? error.message : "Stream failed" }, 500);
   }
 });
 

@@ -117,56 +117,6 @@ export async function sendChatQuery(
   });
 }
 
-// Streaming chat query
-export interface StreamEvent {
-  type: "start" | "content" | "end" | "error";
-  source?: "archive" | "web";
-  conversationId?: string;
-  content?: string;
-  citations?: Citation[];
-  error?: string;
-}
-
-export async function sendChatQueryStream(
-  request: ChatQueryRequest,
-  onEvent: (event: StreamEvent) => void
-): Promise<void> {
-  const response = await fetch(`${API_BASE}/api/v1/chat/query/stream`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || `HTTP ${response.status}`);
-  }
-
-  const reader = response.body?.getReader();
-  if (!reader) throw new Error("No response body");
-
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const text = decoder.decode(value, { stream: true });
-    const lines = text.split("\n");
-
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        try {
-          const event = JSON.parse(line.slice(6)) as StreamEvent;
-          onEvent(event);
-        } catch {
-          // Skip malformed JSON
-        }
-      }
-    }
-  }
-}
-
 // Auth (placeholder)
 export interface LoginRequest {
   email: string;
