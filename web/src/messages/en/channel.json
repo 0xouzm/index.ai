@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "featured": "Featured",
+    "allCollections": "All Collections"
+  },
+  "empty": {
+    "noCollections": "No collections in this channel yet."
+  },
+  "sort": {
+    "latest": "Latest",
+    "popular": "Popular",
+    "mostSources": "Most Sources"
+  },
+  "collection": {
+    "sources": "{count} sources"
+  }
+}

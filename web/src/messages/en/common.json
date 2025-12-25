@@ -1,0 +1,31 @@
+{
+  "loading": "Loading...",
+  "error": {
+    "generic": "Something went wrong",
+    "notFound": "Not found"
+  },
+  "nav": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "create": "+ Create",
+    "home": "Home"
+  },
+  "footer": {
+    "about": "About",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "stats": {
+    "channels": "Channels",
+    "collections": "Collections",
+    "sources": "sources"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit"
+  }
+}

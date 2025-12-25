@@ -1,0 +1,23 @@
+{
+  "hero": {
+    "tagline": "AI 驱动的知识门户 — 探索各领域精选合集"
+  },
+  "sections": {
+    "browseByChannel": "按频道浏览",
+    "latestCollections": "最新合集",
+    "moreToExplore": "更多探索",
+    "quickActions": "快捷操作"
+  },
+  "empty": {
+    "noChannels": "暂无可用频道，请连接 API 查看合集。",
+    "noCollections": "暂无合集"
+  },
+  "collection": {
+    "by": "作者",
+    "sources": "{count} 个来源"
+  },
+  "cta": {
+    "createCollection": "创建合集",
+    "signInRegister": "登录 / 注册"
+  }
+}

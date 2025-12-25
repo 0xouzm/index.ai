@@ -1,0 +1,23 @@
+{
+  "title": "Create Collection",
+  "subtitle": "Create a new knowledge collection to organize your documents",
+  "form": {
+    "channel": "Channel *",
+    "channelPlaceholder": "Select a channel",
+    "titleLabel": "Title *",
+    "titlePlaceholder": "My Knowledge Collection",
+    "slug": "URL Slug *",
+    "slugPlaceholder": "my-knowledge-collection",
+    "summary": "Summary",
+    "summaryPlaceholder": "A brief description of this collection..."
+  },
+  "buttons": {
+    "create": "Create Collection",
+    "creating": "Creating...",
+    "cancel": "Cancel"
+  },
+  "errors": {
+    "requiredFields": "Please fill in all required fields"
+  },
+  "loading": "Loading..."
+}

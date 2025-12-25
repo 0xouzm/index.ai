@@ -1,0 +1,23 @@
+{
+  "title": "创建合集",
+  "subtitle": "创建新的知识合集来组织您的文档",
+  "form": {
+    "channel": "频道 *",
+    "channelPlaceholder": "选择一个频道",
+    "titleLabel": "标题 *",
+    "titlePlaceholder": "我的知识合集",
+    "slug": "URL 别名 *",
+    "slugPlaceholder": "my-knowledge-collection",
+    "summary": "简介",
+    "summaryPlaceholder": "简要描述此合集..."
+  },
+  "buttons": {
+    "create": "创建合集",
+    "creating": "创建中...",
+    "cancel": "取消"
+  },
+  "errors": {
+    "requiredFields": "请填写所有必填项"
+  },
+  "loading": "加载中..."
+}

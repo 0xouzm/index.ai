@@ -1,0 +1,23 @@
+{
+  "hero": {
+    "tagline": "AI-Powered Knowledge Portal — Explore curated collections across domains"
+  },
+  "sections": {
+    "browseByChannel": "Browse by Channel",
+    "latestCollections": "Latest Collections",
+    "moreToExplore": "More to Explore",
+    "quickActions": "Quick Actions"
+  },
+  "empty": {
+    "noChannels": "No channels available. Connect to API to see collections.",
+    "noCollections": "No collections"
+  },
+  "collection": {
+    "by": "By",
+    "sources": "{count} sources"
+  },
+  "cta": {
+    "createCollection": "Create Collection",
+    "signInRegister": "Sign In / Register"
+  }
+}

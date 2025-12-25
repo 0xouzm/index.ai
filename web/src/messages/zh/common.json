@@ -1,0 +1,31 @@
+{
+  "loading": "加载中...",
+  "error": {
+    "generic": "出了点问题",
+    "notFound": "未找到"
+  },
+  "nav": {
+    "signIn": "登录",
+    "signOut": "退出",
+    "create": "+ 创建",
+    "home": "首页"
+  },
+  "footer": {
+    "about": "关于",
+    "pricing": "定价",
+    "contact": "联系",
+    "privacy": "隐私",
+    "terms": "条款"
+  },
+  "stats": {
+    "channels": "频道",
+    "collections": "合集",
+    "sources": "来源"
+  },
+  "actions": {
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑"
+  }
+}

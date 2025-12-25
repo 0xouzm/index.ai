@@ -1,0 +1,72 @@
+{
+  "title": "Chat",
+  "input": {
+    "placeholder": "Ask about your documents..."
+  },
+  "welcome": {
+    "greeting": "Welcome! I'm your AI assistant for \"{title}\". I can help you explore and understand the documents in this collection. What would you like to know?"
+  },
+  "sources": {
+    "title": "Sources",
+    "addSource": "Add Source",
+    "noSources": "No sources yet",
+    "selectAll": "Select all sources",
+    "selected": "{count} source selected",
+    "selectedPlural": "{count} sources selected",
+    "of": "{selected} of {total} sources selected"
+  },
+  "message": {
+    "assistant": "Index AI",
+    "archive": "Archive",
+    "web": "Web",
+    "referenced": "Referenced",
+    "sourceNum": "Source #{num}",
+    "page": "Page {num}",
+    "noContent": "No content available"
+  },
+  "studio": {
+    "title": "Studio",
+    "collectionStats": "Collection Stats",
+    "totalSources": "Total Sources",
+    "selected": "Selected",
+    "activeContext": "Active Context",
+    "chunks": "Chunks",
+    "tokens": "Tokens",
+    "suggestions": "Suggestions",
+    "poweredBy": "Powered by Index AI RAG Pipeline"
+  },
+  "suggestions": {
+    "summarize": "Summarize selected sources",
+    "insights": "Find key insights",
+    "compare": "Compare documents",
+    "faq": "Generate FAQ"
+  },
+  "upload": {
+    "title": "Add Document",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Document title",
+    "tabs": {
+      "text": "Text / Markdown",
+      "url": "From URL"
+    },
+    "content": "Content",
+    "contentPlaceholder": "Paste your text or markdown content here...",
+    "url": "URL",
+    "urlPlaceholder": "https://example.com/article",
+    "buttons": {
+      "add": "Add Document",
+      "adding": "Processing...",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "contentRequired": "Content is required",
+      "urlRequired": "URL is required"
+    }
+  },
+  "info": {
+    "lastUpdated": "Last updated:",
+    "grounded": "AI responses are grounded in your documents"
+  },
+  "loading": "Loading collection..."
+}

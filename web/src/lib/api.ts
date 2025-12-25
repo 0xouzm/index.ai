@@ -13,17 +13,28 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("auth_token");
+}
+
 async function fetchApi<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<ApiResponse<T>> {
   try {
+    const token = getAuthToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options?.headers as Record<string, string>),
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -42,14 +53,14 @@ async function fetchApi<T>(
 // Channels
 export async function getChannels(): Promise<ApiResponse<Channel[]>> {
   const result = await fetchApi<{ channels: Channel[] }>("/api/v1/channels");
-  return result.data ? { data: result.data.channels } : result;
+  return result.data ? { data: result.data.channels } : { error: result.error };
 }
 
 export async function getChannel(slug: string): Promise<ApiResponse<Channel>> {
   const result = await fetchApi<{ channel: Channel }>(
     `/api/v1/channels/${slug}`
   );
-  return result.data ? { data: result.data.channel } : result;
+  return result.data ? { data: result.data.channel } : { error: result.error };
 }
 
 // Collections
@@ -60,7 +71,7 @@ export async function getCollections(
   const result = await fetchApi<{ collections: Collection[] }>(
     `/api/v1/collections${params}`
   );
-  return result.data ? { data: result.data.collections } : result;
+  return result.data ? { data: result.data.collections } : { error: result.error };
 }
 
 export async function getCollection(
@@ -70,7 +81,7 @@ export async function getCollection(
   const result = await fetchApi<{
     collection: Collection & { documents: Document[] };
   }>(`/api/v1/collections/by-slug/${channelSlug}/${collectionSlug}`);
-  return result.data ? { data: result.data.collection } : result;
+  return result.data ? { data: result.data.collection } : { error: result.error };
 }
 
 export async function getCollectionById(
@@ -79,7 +90,7 @@ export async function getCollectionById(
   const result = await fetchApi<{
     collection: Collection & { documents: Document[] };
   }>(`/api/v1/collections/${id}`);
-  return result.data ? { data: result.data.collection } : result;
+  return result.data ? { data: result.data.collection } : { error: result.error };
 }
 
 // Chat
@@ -104,6 +115,56 @@ export async function sendChatQuery(
     method: "POST",
     body: JSON.stringify(request),
   });
+}
+
+// Streaming chat query
+export interface StreamEvent {
+  type: "start" | "content" | "end" | "error";
+  source?: "archive" | "web";
+  conversationId?: string;
+  content?: string;
+  citations?: Citation[];
+  error?: string;
+}
+
+export async function sendChatQueryStream(
+  request: ChatQueryRequest,
+  onEvent: (event: StreamEvent) => void
+): Promise<void> {
+  const response = await fetch(`${API_BASE}/api/v1/chat/query/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("No response body");
+
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const text = decoder.decode(value, { stream: true });
+    const lines = text.split("\n");
+
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        try {
+          const event = JSON.parse(line.slice(6)) as StreamEvent;
+          onEvent(event);
+        } catch {
+          // Skip malformed JSON
+        }
+      }
+    }
+  }
 }
 
 // Auth (placeholder)
@@ -145,4 +206,59 @@ export async function getCurrentUser(): Promise<
   ApiResponse<{ id: string; email: string; username: string }>
 > {
   return fetchApi("/api/v1/auth/me");
+}
+
+// Documents
+export interface CreateDocumentRequest {
+  collectionId: string;
+  title: string;
+  sourceType: "url" | "markdown";
+  content?: string;
+  sourceUrl?: string;
+}
+
+export interface DocumentResponse {
+  id: string;
+  title: string;
+  sourceType: string;
+  sourceUrl?: string;
+  chunkCount: number;
+  tokenCount: number;
+  status: string;
+}
+
+export async function createDocument(
+  request: CreateDocumentRequest
+): Promise<ApiResponse<{ document: DocumentResponse }>> {
+  return fetchApi("/api/v1/documents", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function getDocuments(
+  collectionId: string
+): Promise<ApiResponse<{ documents: Document[] }>> {
+  return fetchApi(`/api/v1/documents?collectionId=${collectionId}`);
+}
+
+export async function deleteDocument(id: string): Promise<ApiResponse<{ success: boolean }>> {
+  return fetchApi(`/api/v1/documents/${id}`, { method: "DELETE" });
+}
+
+// Collections management
+export interface CreateCollectionRequest {
+  channelId: string;
+  title: string;
+  slug: string;
+  summary?: string;
+}
+
+export async function createCollection(
+  request: CreateCollectionRequest
+): Promise<ApiResponse<{ collection: Collection }>> {
+  return fetchApi("/api/v1/collections", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
 }

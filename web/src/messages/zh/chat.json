@@ -1,0 +1,72 @@
+{
+  "title": "对话",
+  "input": {
+    "placeholder": "询问关于您文档的问题..."
+  },
+  "welcome": {
+    "greeting": "您好！我是您的 AI 助手，专为「{title}」服务。我可以帮助您探索和理解此合集中的文档。您想了解什么？"
+  },
+  "sources": {
+    "title": "来源",
+    "addSource": "添加来源",
+    "noSources": "暂无来源",
+    "selectAll": "全选来源",
+    "selected": "已选择 {count} 个来源",
+    "selectedPlural": "已选择 {count} 个来源",
+    "of": "已选择 {selected}/{total} 个来源"
+  },
+  "message": {
+    "assistant": "Index AI",
+    "archive": "存档",
+    "web": "网络",
+    "referenced": "引用",
+    "sourceNum": "来源 #{num}",
+    "page": "第 {num} 页",
+    "noContent": "暂无内容"
+  },
+  "studio": {
+    "title": "工作台",
+    "collectionStats": "合集统计",
+    "totalSources": "来源总数",
+    "selected": "已选",
+    "activeContext": "活动上下文",
+    "chunks": "分块数",
+    "tokens": "令牌数",
+    "suggestions": "建议",
+    "poweredBy": "由 Index AI RAG 管道提供支持"
+  },
+  "suggestions": {
+    "summarize": "总结所选来源",
+    "insights": "发现关键见解",
+    "compare": "对比文档",
+    "faq": "生成常见问题"
+  },
+  "upload": {
+    "title": "添加文档",
+    "titleLabel": "标题",
+    "titlePlaceholder": "文档标题",
+    "tabs": {
+      "text": "文本 / Markdown",
+      "url": "从 URL"
+    },
+    "content": "内容",
+    "contentPlaceholder": "在此粘贴您的文本或 Markdown 内容...",
+    "url": "URL",
+    "urlPlaceholder": "https://example.com/article",
+    "buttons": {
+      "add": "添加文档",
+      "adding": "处理中...",
+      "cancel": "取消"
+    },
+    "errors": {
+      "titleRequired": "标题为必填项",
+      "contentRequired": "内容为必填项",
+      "urlRequired": "URL 为必填项"
+    }
+  },
+  "info": {
+    "lastUpdated": "最后更新：",
+    "grounded": "AI 回复基于您的文档"
+  },
+  "loading": "正在加载合集..."
+}

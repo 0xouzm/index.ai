@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "featured": "精选",
+    "allCollections": "全部合集"
+  },
+  "empty": {
+    "noCollections": "此频道暂无合集。"
+  },
+  "sort": {
+    "latest": "最新",
+    "popular": "热门",
+    "mostSources": "来源最多"
+  },
+  "collection": {
+    "sources": "{count} 个来源"
+  }
+}
