@@ -40,9 +40,9 @@ function extractCitations(
     if (docIdx >= 0 && docIdx < chunks.length && !seenDocs.has(docIdx)) {
       seenDocs.add(docIdx);
       const chunk = chunks[docIdx];
-      // Provide more context - up to 1000 chars to show complete paragraphs
-      const contentPreview = chunk.content.length > 1000
-        ? chunk.content.substring(0, 1000) + "..."
+      // Provide full context - up to 2000 chars for complete paragraphs
+      const contentPreview = chunk.content.length > 2000
+        ? chunk.content.substring(0, 2000) + "..."
         : chunk.content;
       citations.push({
         sourceIndex, // 1-based index matching [N] in the answer

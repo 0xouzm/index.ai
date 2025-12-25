@@ -127,13 +127,13 @@ export function InlineCitation({ citation, index }: InlineCitationProps) {
     return result;
   };
 
-  // Show more content - up to 800 chars to display complete paragraph
+  // Show full content - up to 1500 chars for complete paragraphs with context
   // Normalize line endings for consistent display
   const normalizedContent = citation.chunkContent
     ? citation.chunkContent.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
     : null;
-  const previewContent = normalizedContent && normalizedContent.length > 800
-    ? normalizedContent.slice(0, 800) + "..."
+  const previewContent = normalizedContent && normalizedContent.length > 1500
+    ? normalizedContent.slice(0, 1500) + "..."
     : normalizedContent || t("message.noContent");
 
   // Use sourceIndex directly for display (already 1-based)

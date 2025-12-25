@@ -130,6 +130,10 @@ function cleanContent(content: string): string {
 
   // Then: normalize citation formats (fallback layer, should already be done by backend)
   cleaned = normalizeCitations(cleaned)
+    // Convert markdown headers to bold text: ### Header -> **Header** (line start)
+    .replace(/^#{1,3}\s+(.+)$/gm, "**$1**")
+    // Remove inline ### markers (e.g., "text。### 详细点" -> "text。详细点")
+    .replace(/\s*#{1,3}\s+/g, " ")
     // Remove orphan dots at line start: ". text" or "。text"
     .replace(/^[.。]\s*/gm, "")
     // Remove Chinese/English punctuation at line start
@@ -144,6 +148,8 @@ function cleanContent(content: string): string {
     .replace(/^(\d+)\s+(\*\*)/gm, "$1. $2")
     // Add line break before numbered list items that follow text
     .replace(/([^\n])(\s*)(\d+)\.\s+\*\*/g, "$1\n\n$3. **")
+    // Add line break before summary/conclusion sections
+    .replace(/([。.])(\s*)\*\*(总结|Summary|Takeaway|结论)/g, "$1\n\n**$3")
     // Clean excessive blank lines
     .replace(/\n{3,}/g, "\n\n");
 
