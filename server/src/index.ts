@@ -1,20 +1,33 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import type { Env } from "./types/env";
+import type { AppEnv } from "./types/env";
 import { authRouter } from "./routes/auth";
 import { channelsRouter } from "./routes/channels";
 import { collectionsRouter } from "./routes/collections";
 import { chatRouter } from "./routes/chat";
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<AppEnv>();
 
 // Middleware
 app.use("*", logger());
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:3000", "https://index.ai"],
+    origin: (origin) => {
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://index.ai",
+      ];
+      if (origin && (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".index-ai-web.pages.dev")
+      )) {
+        return origin;
+      }
+      return allowedOrigins[0];
+    },
     credentials: true,
   })
 );

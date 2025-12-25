@@ -6,31 +6,21 @@ compatibility_date = "2024-12-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "indexai"
-database_id = "placeholder-will-be-replaced-after-creation"
+database_id = "4667d1e4-bb91-4b72-8755-aa97eb1353c3"
 
-# Vectorize Index (uncomment after creating)
-# [[vectorize]]
-# binding = "VECTORIZE"
-# index_name = "index-ai-chunks"
+# KV Namespaces
+[[kv_namespaces]]
+binding = "CACHE"
+id = "755b4bfc756b4487a6728ea46f767830"
 
-# R2 Bucket (uncomment after creating)
-# [[r2_buckets]]
-# binding = "DOCUMENTS"
-# bucket_name = "index-ai-documents"
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "9d644530b07242eaac3b9fbf6b191734"
 
-# KV Namespaces (uncomment after creating)
-# [[kv_namespaces]]
-# binding = "CACHE"
-# id = "placeholder"
-
-# [[kv_namespaces]]
-# binding = "SESSIONS"
-# id = "placeholder"
-
-# Queues (uncomment after creating)
-# [[queues.producers]]
-# binding = "INGESTION_QUEUE"
-# queue = "ingestion-queue"
+# Vectorize Index
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "index-ai-chunks"
 
 # AI Gateway
 [ai]

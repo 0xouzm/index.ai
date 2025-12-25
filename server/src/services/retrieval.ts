@@ -17,7 +17,7 @@ export interface RetrievalResult {
   hasRelevantResults: boolean;
 }
 
-const RELEVANCE_THRESHOLD = 0.7;
+const RELEVANCE_THRESHOLD = 0.3; // Lowered for testing
 const TOP_K = 10;
 
 export async function retrieveChunks(
@@ -42,21 +42,14 @@ export async function retrieveChunks(
     return { chunks: [], hasRelevantResults: false };
   }
 
-  // Build filter
-  const filter: Record<string, string | string[]> = {
-    namespace: namespace,
-  };
-
-  if (options?.documentIds && options.documentIds.length > 0) {
-    filter.document_id = options.documentIds;
-  }
-
-  // Query Vectorize
+  // Query Vectorize without filter for now (testing)
+  // TODO: Re-enable namespace filter once data is properly indexed
   const results = await env.VECTORIZE.query(embedding, {
     topK,
-    filter,
     returnMetadata: "all",
   });
+
+  console.log(`Vectorize query returned ${results.matches.length} results`);
 
   // Transform results
   const chunks: RetrievedChunk[] = results.matches.map((match) => ({

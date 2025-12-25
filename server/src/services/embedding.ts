@@ -1,7 +1,16 @@
 import type { Env } from "../types/env";
 
-const EMBEDDING_MODEL = "text-embedding-3-large";
-const EMBEDDING_DIMENSIONS = 3072;
+// Cloudflare AI embedding model
+// bge-base-en-v1.5: 768 dimensions
+// bge-large-en-v1.5: 1024 dimensions
+const EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5";
+const EMBEDDING_DIMENSIONS = 768;
+
+// Cloudflare AI embedding response type
+interface EmbeddingResponse {
+  shape: number[];
+  data: number[][];
+}
 
 export interface EmbeddingResult {
   embedding: number[];
@@ -12,38 +21,17 @@ export async function getEmbedding(
   text: string,
   env: Env
 ): Promise<EmbeddingResult> {
-  const apiKey = env.OPENAI_API_KEY;
+  // Use Cloudflare AI for embeddings
+  const result = (await env.AI.run(EMBEDDING_MODEL, {
+    text: [text],
+  })) as EmbeddingResponse;
 
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY not configured");
-  }
-
-  const response = await fetch("https://api.openai.com/v1/embeddings", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: EMBEDDING_MODEL,
-      input: text,
-      dimensions: EMBEDDING_DIMENSIONS,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`OpenAI API error: ${error}`);
-  }
-
-  const data = (await response.json()) as {
-    data: Array<{ embedding: number[] }>;
-    usage: { total_tokens: number };
-  };
+  // Cloudflare AI returns { shape: [n, dimensions], data: [[...embedding]] }
+  const embedding = result.data[0];
 
   return {
-    embedding: data.data[0].embedding,
-    tokenCount: data.usage.total_tokens,
+    embedding: embedding,
+    tokenCount: Math.ceil(text.length / 4), // Approximate token count
   };
 }
 
@@ -51,53 +39,31 @@ export async function getEmbeddings(
   texts: string[],
   env: Env
 ): Promise<EmbeddingResult[]> {
-  const apiKey = env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY not configured");
+  if (texts.length === 0) {
+    return [];
   }
 
-  // Batch in groups of 100
+  // Cloudflare AI can handle batch inputs
   const batchSize = 100;
   const results: EmbeddingResult[] = [];
 
   for (let i = 0; i < texts.length; i += batchSize) {
     const batch = texts.slice(i, i + batchSize);
 
-    const response = await fetch("https://api.openai.com/v1/embeddings", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: EMBEDDING_MODEL,
-        input: batch,
-        dimensions: EMBEDDING_DIMENSIONS,
-      }),
-    });
+    const result = (await env.AI.run(EMBEDDING_MODEL, {
+      text: batch,
+    })) as EmbeddingResponse;
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI API error: ${error}`);
-    }
-
-    const data = (await response.json()) as {
-      data: Array<{ embedding: number[]; index: number }>;
-      usage: { total_tokens: number };
-    };
-
-    // Sort by index to maintain order
-    const sortedData = data.data.sort((a, b) => a.index - b.index);
-    const tokensPerItem = Math.floor(data.usage.total_tokens / batch.length);
-
-    for (const item of sortedData) {
+    // Each embedding in the batch
+    for (let j = 0; j < batch.length; j++) {
       results.push({
-        embedding: item.embedding,
-        tokenCount: tokensPerItem,
+        embedding: result.data[j],
+        tokenCount: Math.ceil(batch[j].length / 4),
       });
     }
   }
 
   return results;
 }
+
+export { EMBEDDING_DIMENSIONS };

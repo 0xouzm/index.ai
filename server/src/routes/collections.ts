@@ -1,7 +1,8 @@
 import { Hono } from "hono";
-import type { Env } from "../types/env";
+import type { AppEnv } from "../types/env";
+import { toCamelCase } from "../utils/case-transform";
 
-export const collectionsRouter = new Hono<{ Bindings: Env }>();
+export const collectionsRouter = new Hono<AppEnv>();
 
 // Get collections (with optional channel filter)
 collectionsRouter.get("/", async (c) => {
@@ -31,7 +32,7 @@ collectionsRouter.get("/", async (c) => {
     const stmt = c.env.DB.prepare(query);
     const { results } = await stmt.bind(...params).all();
 
-    return c.json({ collections: results });
+    return c.json({ collections: toCamelCase(results) });
   } catch (error) {
     console.error("Error fetching collections:", error);
     return c.json({ error: "Failed to fetch collections" }, 500);
@@ -64,10 +65,10 @@ collectionsRouter.get("/:id", async (c) => {
       .all();
 
     return c.json({
-      collection: {
+      collection: toCamelCase({
         ...collection,
         documents,
-      },
+      }),
     });
   } catch (error) {
     console.error("Error fetching collection:", error);
@@ -102,10 +103,10 @@ collectionsRouter.get("/by-slug/:channelSlug/:collectionSlug", async (c) => {
       .all();
 
     return c.json({
-      collection: {
+      collection: toCamelCase({
         ...collection,
         documents,
-      },
+      }),
     });
   } catch (error) {
     console.error("Error fetching collection:", error);

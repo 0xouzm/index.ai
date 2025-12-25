@@ -25,5 +25,19 @@ export interface Env {
   JWT_SECRET?: string;
   OPENAI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
+  KIMI_API_KEY?: string;
   STRIPE_SECRET_KEY?: string;
+}
+
+// Hono context variables (set by auth middleware)
+export interface Variables {
+  userId: string;
+  userEmail: string;
+  username: string;
+}
+
+// Combined app type for Hono
+export interface AppEnv {
+  Bindings: Env;
+  Variables: Variables;
 }

@@ -10,15 +10,13 @@ interface ChatMessageProps {
   className?: string;
 }
 
-// Inline Citation Link with Hover Tooltip
+// Inline Citation Link with Hover Tooltip - NotebookLM style numbered badge
 function InlineCitation({
   citation,
   index,
-  displayText,
 }: {
   citation: Citation;
   index: number;
-  displayText: string;
 }) {
   const t = useTranslations("chat");
   const [isOpen, setIsOpen] = useState(false);
@@ -45,20 +43,26 @@ function InlineCitation({
     ? citation.chunkContent.slice(0, 300) + "..."
     : citation.chunkContent || t("message.noContent");
 
+  // Display number (1-based)
+  const displayNum = index + 1;
+
   return (
-    <span className="relative inline">
+    <span className="relative inline-flex align-baseline">
       <span
         ref={triggerRef}
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
         className={cn(
-          "inline cursor-help",
-          "text-[var(--color-accent)] hover:text-[var(--color-accent)]/80",
-          "border-b border-dashed border-[var(--color-accent)]/50",
-          "transition-colors"
+          "inline-flex items-center justify-center cursor-help",
+          "w-5 h-5 text-[10px] font-semibold rounded-full",
+          "bg-[var(--color-accent)] text-white",
+          "hover:bg-[var(--color-accent)]/80 hover:scale-110",
+          "transition-all duration-150",
+          "ml-0.5 -translate-y-0.5"
         )}
+        title={citation.documentTitle}
       >
-        {displayText}
+        {displayNum}
       </span>
 
       {/* Tooltip */}
@@ -135,9 +139,10 @@ function parseContentWithCitations(
 
   const result: ReactNode[] = [];
 
-  // Match various citation patterns:
-  // [1: Document Name], [Document 1: Name], [1], [Document 1]
-  const citationPattern = /\[(?:Document\s*)?(\d+)(?::\s*([^\]]+))?\]/gi;
+  // Match various citation patterns (including malformed ones from AI):
+  // [Document 1], [Document 1: Title], [1], [ Document 1], Document 1], [Doc 1]
+  // Also matches: Document 4] (missing opening bracket)
+  const citationPattern = /\[?\s*(?:Doc(?:ument)?\s*)?(\d+)(?::\s*[^\]]+)?\s*\]|\bDocument\s+(\d+)\]/gi;
 
   let lastIndex = 0;
   let match;
@@ -154,7 +159,8 @@ function parseContentWithCitations(
     }
 
     // Determine citation index (1-based in text, convert to 0-based)
-    const citationNum = match[1];
+    // match[1] is from first pattern, match[2] is from second pattern (Document X])
+    const citationNum = match[1] || match[2];
     const citationIndex = citationNum ? parseInt(citationNum, 10) - 1 : -1;
 
     if (citationIndex >= 0 && citationIndex < citations.length) {
@@ -164,7 +170,6 @@ function parseContentWithCitations(
           key={`citation-${keyIndex++}`}
           citation={citation}
           index={citationIndex}
-          displayText={match[0]}
         />
       );
     } else {
@@ -297,12 +302,12 @@ function ContentWithCitations({
       return;
     }
 
-    // Regular paragraph
+    // Regular paragraph (using div to avoid hydration errors with nested div in tooltip)
     flushList();
     elements.push(
-      <p key={`p-${lineIndex}`} className="mb-3 last:mb-0 leading-relaxed">
+      <div key={`p-${lineIndex}`} className="mb-3 last:mb-0 leading-relaxed">
         {formatText(trimmed, citations || [])}
-      </p>
+      </div>
     );
   });
 
