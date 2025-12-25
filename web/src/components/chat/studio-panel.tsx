@@ -27,17 +27,20 @@ export function StudioPanel({
   const totalChunks = selectedDocs.reduce((sum, d) => sum + (d.chunkCount || 0), 0);
 
   return (
-    <div className={cn("flex flex-col h-full bg-[var(--color-background)]", className)}>
+    <div className={cn("flex flex-col h-full", className)}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-        <h2 className="font-display text-sm font-semibold tracking-wide text-[var(--color-foreground)]">
-          {t("studio.title")}
-        </h2>
+      <div className="px-5 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🎯</span>
+          <h2 className="font-display text-base font-semibold text-[var(--color-foreground)]">
+            {t("studio.title")}
+          </h2>
+        </div>
         {onToggle && (
           <button
             onClick={onToggle}
             className={cn(
-              "w-7 h-7 rounded-md flex items-center justify-center",
+              "w-8 h-8 rounded-xl flex items-center justify-center",
               "hover:bg-[var(--color-muted)] transition-colors"
             )}
             aria-label={isCollapsed ? "Expand panel" : "Collapse panel"}
@@ -58,77 +61,80 @@ export function StudioPanel({
       {!isCollapsed && (
         <div className="flex-1 overflow-y-auto">
           {/* Collection Summary */}
-          <div className="p-4 border-b border-[var(--color-border)]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center",
-                "bg-gradient-to-br from-[var(--color-accent)]/20 to-[var(--color-accent)]/5",
-                "border border-[var(--color-accent)]/20"
-              )}>
-                <svg className="w-5 h-5 text-[var(--color-accent)]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/>
-                </svg>
+          <div className="px-5 pb-5">
+            <div className="p-4 rounded-2xl bg-[var(--color-muted)]">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={cn(
+                  "w-12 h-12 rounded-xl flex items-center justify-center",
+                  "bg-gradient-to-br from-[var(--color-accent)] to-[#FF8E8E]",
+                  "shadow-sm"
+                )}>
+                  <span className="text-white text-xl">📚</span>
+                </div>
+                <div>
+                  <h3 className="font-display text-sm font-semibold text-[var(--color-foreground)] leading-snug">
+                    {collection.title}
+                  </h3>
+                  <p className="text-xs text-[var(--color-muted-foreground)]">
+                    By {collection.by}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-display text-base font-semibold text-[var(--color-foreground)]">
-                  {collection.title}
-                </h3>
-                <p className="text-xs text-[var(--color-muted-foreground)]">
-                  By {collection.by}
-                </p>
-              </div>
-            </div>
 
-            {collection.summary && (
-              <p className="text-sm text-[var(--color-foreground)]/80 leading-relaxed">
-                {collection.summary}
-              </p>
-            )}
+              {collection.summary && (
+                <p className="text-sm text-[var(--color-foreground)]/80 leading-relaxed line-clamp-3">
+                  {collection.summary}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Stats */}
-          <div className="p-4 border-b border-[var(--color-border)]">
-            <h4 className="text-[10px] font-semibold text-[var(--color-muted-foreground)] uppercase tracking-wide mb-3">
+          <div className="px-5 pb-5">
+            <h4 className="text-xs font-semibold text-[var(--color-muted-foreground)] mb-3 flex items-center gap-1.5">
+              <span>📊</span>
               {t("studio.collectionStats")}
             </h4>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-[var(--color-muted)]">
-                <p className="text-lg font-display font-bold text-[var(--color-foreground)]">
+              <div className="p-4 rounded-xl bg-[var(--color-muted)] text-center">
+                <p className="text-2xl font-display font-bold text-[var(--color-foreground)]">
                   {collection.documents.length}
                 </p>
-                <p className="text-xs text-[var(--color-muted-foreground)]">{t("studio.totalSources")}</p>
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">{t("studio.totalSources")}</p>
               </div>
-              <div className="p-3 rounded-lg bg-[var(--color-muted)]">
-                <p className="text-lg font-display font-bold text-[var(--color-foreground)]">
+              <div className="p-4 rounded-xl bg-[var(--color-accent-soft)] text-center">
+                <p className="text-2xl font-display font-bold text-[var(--color-accent)]">
                   {selectedDocIds.size}
                 </p>
-                <p className="text-xs text-[var(--color-muted-foreground)]">{t("studio.selected")}</p>
+                <p className="text-xs text-[var(--color-accent)]/70 mt-0.5">{t("studio.selected")}</p>
               </div>
             </div>
           </div>
 
           {/* Selected Sources Details */}
           {selectedDocs.length > 0 && (
-            <div className="p-4 border-b border-[var(--color-border)]">
-              <h4 className="text-[10px] font-semibold text-[var(--color-muted-foreground)] uppercase tracking-wide mb-3">
+            <div className="px-5 pb-5">
+              <h4 className="text-xs font-semibold text-[var(--color-muted-foreground)] mb-3 flex items-center gap-1.5">
+                <span>⚡</span>
                 {t("studio.activeContext")}
               </h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[var(--color-muted-foreground)]">{t("studio.chunks")}</span>
-                  <span className="font-medium text-[var(--color-foreground)]">{totalChunks.toLocaleString()}</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-muted)]">
+                  <span className="text-sm text-[var(--color-muted-foreground)]">{t("studio.chunks")}</span>
+                  <span className="text-sm font-semibold text-[var(--color-foreground)]">{totalChunks.toLocaleString()}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[var(--color-muted-foreground)]">{t("studio.tokens")}</span>
-                  <span className="font-medium text-[var(--color-foreground)]">{totalTokens.toLocaleString()}</span>
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-muted)]">
+                  <span className="text-sm text-[var(--color-muted-foreground)]">{t("studio.tokens")}</span>
+                  <span className="text-sm font-semibold text-[var(--color-foreground)]">{totalTokens.toLocaleString()}</span>
                 </div>
               </div>
             </div>
           )}
 
           {/* Quick Actions */}
-          <div className="p-4">
-            <h4 className="text-[10px] font-semibold text-[var(--color-muted-foreground)] uppercase tracking-wide mb-3">
+          <div className="px-5 pb-5">
+            <h4 className="text-xs font-semibold text-[var(--color-muted-foreground)] mb-3 flex items-center gap-1.5">
+              <span>💡</span>
               {t("studio.suggestions")}
             </h4>
             <div className="space-y-2">
@@ -142,23 +148,23 @@ export function StudioPanel({
                   key={idx}
                   onClick={() => onSuggestionClick?.(action.prompt)}
                   className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg",
+                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl",
                     "text-sm text-left",
-                    "bg-[var(--color-muted)] hover:bg-[var(--color-accent)]/10",
-                    "hover:text-[var(--color-accent)] transition-colors",
-                    "border border-transparent hover:border-[var(--color-accent)]/20"
+                    "bg-[var(--color-muted)] hover:bg-[var(--color-accent-soft)]",
+                    "hover:text-[var(--color-accent)]",
+                    "transition-all duration-200"
                   )}
                 >
-                  <span>{action.icon}</span>
-                  <span>{t(`suggestions.${action.labelKey}`)}</span>
+                  <span className="text-base">{action.icon}</span>
+                  <span className="font-medium">{t(`suggestions.${action.labelKey}`)}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Footer Info */}
-          <div className="p-4 mt-auto border-t border-[var(--color-border)] bg-[var(--color-muted)]/30">
-            <p className="text-xs text-[var(--color-muted-foreground)] text-center">
+          <div className="px-5 py-4 mt-auto border-t border-[var(--color-border)]">
+            <p className="text-xs text-center text-[var(--color-muted-foreground)]">
               {t("studio.poweredBy")}
             </p>
           </div>

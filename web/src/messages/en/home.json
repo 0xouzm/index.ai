@@ -1,5 +1,6 @@
 {
   "hero": {
+    "title": "Your AI Knowledge Companion",
     "tagline": "AI-Powered Knowledge Portal — Explore curated collections across domains"
   },
   "sections": {
@@ -17,6 +18,8 @@
     "sources": "{count} sources"
   },
   "cta": {
+    "title": "Create Your Knowledge Base",
+    "description": "Curate sources, ask questions, and get AI-powered insights from your collection.",
     "createCollection": "Create Collection",
     "signInRegister": "Sign In / Register"
   }

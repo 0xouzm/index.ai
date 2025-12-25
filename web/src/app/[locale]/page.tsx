@@ -16,12 +16,24 @@ interface ChannelWithCollections {
   collections: Collection[];
 }
 
+const channelEmojis: Record<string, string> = {
+  "programming-ai": "💻",
+  travel: "✈️",
+  fitness: "💪",
+  nutrition: "🥗",
+};
+
+const channelColors: Record<string, string> = {
+  "programming-ai": "from-blue-400 to-indigo-500",
+  travel: "from-cyan-400 to-blue-500",
+  fitness: "from-teal-400 to-cyan-500",
+  nutrition: "from-emerald-400 to-teal-500",
+};
+
 export default function HomePage() {
   const t = useTranslations("home");
   const tc = useTranslations("common");
-  const [channelsData, setChannelsData] = useState<ChannelWithCollections[]>(
-    []
-  );
+  const [channelsData, setChannelsData] = useState<ChannelWithCollections[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -74,22 +86,14 @@ export default function HomePage() {
         new Date(a.createdAt || 0).getTime()
     );
 
-  const featuredCollection = allCollections[0];
-  const recentCollections = allCollections.slice(1, 7);
-  const moreCollections = allCollections.slice(7, 13);
-
-  function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="text-[var(--color-muted-foreground)]">
-            {tc("loading")}
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 rounded-full border-3 border-[var(--color-accent)] border-t-transparent animate-spin" />
+            <p className="text-sm text-[var(--color-muted-foreground)]">{tc("loading")}</p>
           </div>
         </main>
       </div>
@@ -100,280 +104,244 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
       <Header />
 
-      {/* Ticker / Tagline */}
-      <div className="border-b border-[var(--color-border)] bg-[var(--color-muted)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="py-2 text-xs text-[var(--color-muted-foreground)] text-center tracking-wide uppercase">
-            {t("hero.tagline")}
-          </p>
-        </div>
-      </div>
-
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-          {channelsData.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-[var(--color-muted-foreground)]">
-                {t("empty.noChannels")}
+        {/* Hero Section */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-accent-soft)] via-transparent to-[#E6FFFA] opacity-60" />
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+            <div className="text-center max-w-3xl mx-auto">
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-[var(--color-foreground)] leading-tight">
+                {t("hero.title")}
+              </h1>
+              <p className="mt-6 text-lg text-[var(--color-muted-foreground)] leading-relaxed">
+                {t("hero.tagline")}
               </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-12 gap-6">
-              {/* Main Content Area */}
-              <div className="col-span-12 lg:col-span-8">
-                {/* Featured + Recent Grid */}
-                <div className="grid grid-cols-12 gap-4 mb-6">
-                  {featuredCollection && (
-                    <Link
-                      href={`/c/${featuredCollection.channelSlug}/${featuredCollection.slug}`}
-                      className="col-span-12 md:col-span-7 group"
-                    >
-                      <article className="h-full border border-[var(--color-border)] bg-[var(--color-card)] p-5 hover:border-[var(--color-foreground)] transition-colors">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-                            Featured
-                          </span>
-                          <span className="text-[10px] text-[var(--color-muted-foreground)]">
-                            {featuredCollection.channelName}
-                          </span>
-                        </div>
-                        <h2 className="font-display text-2xl md:text-3xl font-bold leading-tight mb-3 group-hover:text-[var(--color-accent)] transition-colors">
-                          {featuredCollection.title}
-                        </h2>
-                        {featuredCollection.summary && (
-                          <p className="text-sm text-[var(--color-muted-foreground)] line-clamp-3 mb-4">
-                            {featuredCollection.summary}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-3 text-xs text-[var(--color-muted-foreground)]">
-                          <span>
-                            {t("collection.sources", {
-                              count: featuredCollection.sourceCount,
-                            })}
-                          </span>
-                          <span>·</span>
-                          <span>
-                            {t("collection.by")} {featuredCollection.by}
-                          </span>
-                          {featuredCollection.createdAt && (
-                            <>
-                              <span>·</span>
-                              <span>
-                                {formatDate(featuredCollection.createdAt)}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </article>
-                    </Link>
-                  )}
-
-                  <div className="col-span-12 md:col-span-5 space-y-3">
-                    {recentCollections.slice(0, 4).map((collection) => (
-                      <Link
-                        key={collection.id}
-                        href={`/c/${collection.channelSlug}/${collection.slug}`}
-                        className="group block border-b border-[var(--color-border)] pb-3 last:border-0"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                            {collection.channelName}
-                          </span>
-                        </div>
-                        <h3 className="font-medium text-sm leading-snug group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
-                          {collection.title}
-                        </h3>
-                        <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
-                          {t("collection.sources", {
-                            count: collection.sourceCount,
-                          })}{" "}
-                          · {collection.by}
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Channel Sections */}
-                <div className="border-t-2 border-[var(--color-foreground)] pt-4">
-                  <h2 className="font-display text-lg font-bold mb-4">
-                    {t("sections.browseByChannel")}
-                  </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {channelsData.map(({ channel, collections }) => (
-                      <div key={channel.id} className="space-y-2">
-                        <Link
-                          href={`/c/${channel.slug}`}
-                          className="group flex items-center gap-1"
-                        >
-                          <h3 className="font-semibold text-sm group-hover:text-[var(--color-accent)] transition-colors">
-                            {channel.name}
-                          </h3>
-                          <span className="text-xs text-[var(--color-muted-foreground)]">
-                            →
-                          </span>
-                        </Link>
-                        <ul className="space-y-1.5">
-                          {collections.slice(0, 3).map((collection) => (
-                            <li key={collection.id}>
-                              <Link
-                                href={`/c/${channel.slug}/${collection.slug}`}
-                                className="text-xs text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors line-clamp-1"
-                              >
-                                {collection.title}
-                              </Link>
-                            </li>
-                          ))}
-                          {collections.length === 0 && (
-                            <li className="text-xs text-[var(--color-muted-foreground)] italic">
-                              {t("empty.noCollections")}
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Sidebar */}
-              <aside className="col-span-12 lg:col-span-4 space-y-6">
-                <div className="border border-[var(--color-border)] bg-[var(--color-card)]">
-                  <div className="px-4 py-3 border-b border-[var(--color-border)]">
-                    <h3 className="font-display text-sm font-bold uppercase tracking-wider">
-                      {t("sections.latestCollections")}
-                    </h3>
-                  </div>
-                  <ul className="divide-y divide-[var(--color-border)]">
-                    {recentCollections.slice(0, 6).map((collection, idx) => (
-                      <li key={collection.id}>
-                        <Link
-                          href={`/c/${collection.channelSlug}/${collection.slug}`}
-                          className="group flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-muted)] transition-colors"
-                        >
-                          <span className="font-display text-2xl font-bold text-[var(--color-muted-foreground)] group-hover:text-[var(--color-accent)] transition-colors">
-                            {String(idx + 1).padStart(2, "0")}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium leading-snug group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
-                              {collection.title}
-                            </h4>
-                            <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
-                              {collection.channelName}
-                            </p>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="border border-[var(--color-border)] bg-[var(--color-card)] p-4">
-                  <h3 className="font-display text-sm font-bold uppercase tracking-wider mb-3">
-                    {t("sections.quickActions")}
-                  </h3>
-                  <div className="space-y-2">
-                    <Link
-                      href="/manage"
-                      className={cn(
-                        "flex items-center justify-between px-3 py-2 text-sm",
-                        "border border-[var(--color-border)]",
-                        "hover:bg-[var(--color-muted)] transition-colors"
-                      )}
-                    >
-                      <span>{t("cta.createCollection")}</span>
-                      <span className="text-[var(--color-muted-foreground)]">
-                        +
-                      </span>
-                    </Link>
-                    <Link
-                      href="/auth"
-                      className={cn(
-                        "flex items-center justify-between px-3 py-2 text-sm",
-                        "border border-[var(--color-border)]",
-                        "hover:bg-[var(--color-muted)] transition-colors"
-                      )}
-                    >
-                      <span>{t("cta.signInRegister")}</span>
-                      <span className="text-[var(--color-muted-foreground)]">
-                        →
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-center">
-                    <div className="font-display text-2xl font-bold">
-                      {channelsData.length}
-                    </div>
-                    <div className="text-xs text-[var(--color-muted-foreground)] uppercase tracking-wider">
-                      {tc("stats.channels")}
-                    </div>
-                  </div>
-                  <div className="border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-center">
-                    <div className="font-display text-2xl font-bold">
-                      {allCollections.length}
-                    </div>
-                    <div className="text-xs text-[var(--color-muted-foreground)] uppercase tracking-wider">
-                      {tc("stats.collections")}
-                    </div>
-                  </div>
-                </div>
-              </aside>
-            </div>
-          )}
-
-          {moreCollections.length > 0 && (
-            <section className="mt-8 pt-6 border-t border-[var(--color-border)]">
-              <h2 className="font-display text-lg font-bold mb-4">
-                {t("sections.moreToExplore")}
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {moreCollections.map((collection) => (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                {channelsData.map(({ channel }) => (
                   <Link
-                    key={collection.id}
-                    href={`/c/${collection.channelSlug}/${collection.slug}`}
-                    className="group"
+                    key={channel.id}
+                    href={`/c/${channel.slug}`}
+                    className={cn(
+                      "inline-flex items-center gap-2 px-5 py-2.5 rounded-full",
+                      "bg-white shadow-sm hover:shadow-md",
+                      "text-sm font-medium text-[var(--color-foreground)]",
+                      "transition-all duration-200 hover:-translate-y-0.5"
+                    )}
                   >
-                    <article className="border border-[var(--color-border)] p-3 hover:border-[var(--color-foreground)] transition-colors h-full">
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                        {collection.channelName}
-                      </span>
-                      <h3 className="font-medium text-sm mt-1 group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
-                        {collection.title}
-                      </h3>
-                      <p className="text-xs text-[var(--color-muted-foreground)] mt-2">
-                        {t("collection.sources", {
-                          count: collection.sourceCount,
-                        })}
-                      </p>
-                    </article>
+                    <span>{channelEmojis[channel.slug] || "📚"}</span>
+                    {channel.name}
                   </Link>
                 ))}
               </div>
-            </section>
-          )}
-        </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Collections */}
+        {allCollections.length > 0 && (
+          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="font-display text-2xl font-bold text-[var(--color-foreground)]">
+                {t("sections.latestCollections")}
+              </h2>
+              <span className="text-sm text-[var(--color-muted-foreground)]">
+                {allCollections.length} {tc("stats.collections").toLowerCase()}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {allCollections.slice(0, 6).map((collection, idx) => (
+                <Link
+                  key={collection.id}
+                  href={`/c/${collection.channelSlug}/${collection.slug}`}
+                  className={cn(
+                    "group relative overflow-hidden rounded-2xl bg-white p-6",
+                    "shadow-sm hover:shadow-lg",
+                    "transition-all duration-300 hover:-translate-y-1"
+                  )}
+                >
+                  {/* Decorative gradient */}
+                  <div
+                    className={cn(
+                      "absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 blur-2xl",
+                      "bg-gradient-to-br",
+                      channelColors[collection.channelSlug] || "from-gray-400 to-gray-500"
+                    )}
+                  />
+
+                  <div className="relative">
+                    {/* Channel badge */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="w-8 h-8 rounded-lg bg-[var(--color-muted)] flex items-center justify-center text-base">
+                        {channelEmojis[collection.channelSlug] || "📚"}
+                      </span>
+                      <span className="text-xs font-medium text-[var(--color-muted-foreground)]">
+                        {collection.channelName}
+                      </span>
+                      {idx === 0 && (
+                        <span className="ml-auto px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+                          New
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="font-display text-lg font-semibold text-[var(--color-foreground)] leading-snug group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
+                      {collection.title}
+                    </h3>
+
+                    {/* Summary */}
+                    {collection.summary && (
+                      <p className="mt-3 text-sm text-[var(--color-muted-foreground)] leading-relaxed line-clamp-2">
+                        {collection.summary}
+                      </p>
+                    )}
+
+                    {/* Meta */}
+                    <div className="mt-4 flex items-center gap-3 text-xs text-[var(--color-muted-foreground)]">
+                      <span className="flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        {collection.sourceCount} sources
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-[var(--color-border-hover)]" />
+                      <span>{collection.by}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Browse by Channel */}
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+          <h2 className="font-display text-2xl font-bold text-[var(--color-foreground)] mb-8">
+            {t("sections.browseByChannel")}
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {channelsData.map(({ channel, collections }) => (
+              <div
+                key={channel.id}
+                className="rounded-2xl bg-[var(--color-muted)] p-6 hover:bg-[var(--color-border)] transition-colors"
+              >
+                <Link
+                  href={`/c/${channel.slug}`}
+                  className="flex items-center gap-3 mb-4 group"
+                >
+                  <div
+                    className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br shadow-sm",
+                      channelColors[channel.slug] || "from-gray-400 to-gray-500"
+                    )}
+                  >
+                    <span className="filter drop-shadow-sm">
+                      {channelEmojis[channel.slug] || "📚"}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-display font-semibold text-[var(--color-foreground)] group-hover:text-[var(--color-accent)] transition-colors">
+                      {channel.name}
+                    </h3>
+                    <p className="text-xs text-[var(--color-muted-foreground)]">
+                      {collections.length} {tc("stats.collections").toLowerCase()}
+                    </p>
+                  </div>
+                </Link>
+
+                <ul className="space-y-2">
+                  {collections.slice(0, 3).map((collection) => (
+                    <li key={collection.id}>
+                      <Link
+                        href={`/c/${channel.slug}/${collection.slug}`}
+                        className="block px-3 py-2 rounded-lg text-sm text-[var(--color-muted-foreground)] hover:bg-white hover:text-[var(--color-foreground)] hover:shadow-sm transition-all line-clamp-1"
+                      >
+                        {collection.title}
+                      </Link>
+                    </li>
+                  ))}
+                  {collections.length === 0 && (
+                    <li className="px-3 py-2 text-sm text-[var(--color-muted-foreground)] italic">
+                      {t("empty.noCollections")}
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Quick Actions */}
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+          <div className="rounded-3xl bg-gradient-to-br from-[#1A365D] to-[#2B4C7E] p-8 md:p-12 text-white">
+            <div className="max-w-2xl">
+              <h2 className="font-display text-2xl md:text-3xl font-bold mb-4">
+                {t("cta.title", { defaultValue: "Create Your Knowledge Base" })}
+              </h2>
+              <p className="text-white/70 mb-6">
+                {t("cta.description", { defaultValue: "Curate sources, ask questions, and get AI-powered insights from your collection." })}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/manage"
+                  className={cn(
+                    "inline-flex items-center gap-2 px-6 py-3 rounded-full",
+                    "bg-white text-[var(--color-foreground)]",
+                    "font-semibold text-sm",
+                    "hover:bg-white/90 hover:shadow-lg",
+                    "transition-all duration-200"
+                  )}
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  {t("cta.createCollection")}
+                </Link>
+                <Link
+                  href="/auth"
+                  className={cn(
+                    "inline-flex items-center gap-2 px-6 py-3 rounded-full",
+                    "bg-white/10 text-white border border-white/20",
+                    "font-semibold text-sm",
+                    "hover:bg-white/20",
+                    "transition-all duration-200"
+                  )}
+                >
+                  {t("cta.signInRegister")}
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
-      <footer className="border-t border-[var(--color-border)] py-4 bg-[var(--color-muted)]">
+      {/* Footer */}
+      <footer className="border-t border-[var(--color-border)] py-8 bg-[var(--color-muted)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[var(--color-muted-foreground)]">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--color-accent)] to-[#7EC8E3] flex items-center justify-center shadow-sm">
+                <span className="text-white font-display font-bold text-sm">i</span>
+              </div>
               <span className="font-display font-bold text-[var(--color-foreground)]">
                 Index.ai
               </span>
-              <span>© 2024</span>
+              <span className="text-sm text-[var(--color-muted-foreground)]">© 2024</span>
             </div>
-            <nav className="flex items-center gap-4">
+            <nav className="flex flex-wrap items-center justify-center gap-4 text-sm">
               {channelsData.map(({ channel }) => (
                 <Link
                   key={channel.id}
                   href={`/c/${channel.slug}`}
-                  className="hover:text-[var(--color-foreground)] transition-colors"
+                  className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
                 >
-                  {channel.name}
+                  {channelEmojis[channel.slug]} {channel.name}
                 </Link>
               ))}
             </nav>
