@@ -87,9 +87,11 @@ All API routes are versioned under `/api/v1/`:
 3. Chunks + query -> Claude API -> grounded response with citations
 
 ### Internationalization
-- Supported locales: `en` (default), `zh`
+- Supported locales: `zh` (default), `en`
 - Translation files in `web/src/messages/{locale}/`
 - Route structure: `/[locale]/...` with next-intl middleware
+- **All UI translations MUST use next-intl framework** - never store translations in database
+- Channel names are translated via `channel.names.{slug}` keys
 
 ## Environment Configuration
 

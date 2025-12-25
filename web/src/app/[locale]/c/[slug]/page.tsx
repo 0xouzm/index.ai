@@ -59,6 +59,22 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
   const channel = await getChannel(slug);
   const collections = await getCollections(slug);
 
+  function getChannelName(ch: Channel): string {
+    try {
+      return t(`names.${ch.slug}`);
+    } catch {
+      return ch.name;
+    }
+  }
+
+  function getChannelDescription(ch: Channel): string {
+    try {
+      return t(`descriptions.${ch.slug}`);
+    } catch {
+      return ch.description;
+    }
+  }
+
   if (!channel) {
     notFound();
   }
@@ -78,7 +94,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
               </Link>
               <span className="mx-2">/</span>
               <span className="text-[var(--color-foreground)]">
-                {channel.name}
+                {getChannelName(channel)}
               </span>
             </nav>
           </div>
@@ -87,10 +103,10 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
         <section className="border-b border-[var(--color-border)] py-8">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <h1 className="font-display text-3xl md:text-4xl font-bold mb-2">
-              {channel.name}
+              {getChannelName(channel)}
             </h1>
             <p className="text-[var(--color-muted-foreground)] text-lg mb-4">
-              {channel.description}
+              {getChannelDescription(channel)}
             </p>
             <p className="text-sm text-[var(--color-muted-foreground)]">
               {collections.length} {tc("stats.collections")} &middot;{" "}

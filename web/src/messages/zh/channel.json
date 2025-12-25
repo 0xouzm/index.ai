@@ -1,4 +1,16 @@
 {
+  "names": {
+    "programming-ai": "编程与AI",
+    "travel": "旅行",
+    "fitness": "健身",
+    "nutrition": "营养"
+  },
+  "descriptions": {
+    "programming-ai": "模型架构、工程实践与工具链",
+    "travel": "全球目的地、行程规划与旅行攻略",
+    "fitness": "训练计划、健身课程与运动科学",
+    "nutrition": "健康饮食、膳食规划与营养指南"
+  },
   "sections": {
     "featured": "精选",
     "allCollections": "全部合集"

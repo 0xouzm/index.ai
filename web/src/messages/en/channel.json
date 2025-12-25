@@ -1,4 +1,16 @@
 {
+  "names": {
+    "programming-ai": "Programming & AI",
+    "travel": "Travel",
+    "fitness": "Fitness",
+    "nutrition": "Nutrition"
+  },
+  "descriptions": {
+    "programming-ai": "Model architectures, engineering practices, and toolchains",
+    "travel": "Destinations, itineraries, and travel tips from around the world",
+    "fitness": "Training programs, workout routines, and exercise science",
+    "nutrition": "Healthy eating, meal planning, and nutritional guidance"
+  },
   "sections": {
     "featured": "Featured",
     "allCollections": "All Collections"

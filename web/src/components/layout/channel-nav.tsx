@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { Channel } from "@/types";
 import { getChannels } from "@/lib/api";
@@ -12,7 +13,17 @@ interface ChannelNavProps {
 }
 
 export function ChannelNav({ variant = "header", className }: ChannelNavProps) {
+  const t = useTranslations("channel");
   const [channels, setChannels] = useState<Channel[]>([]);
+
+  function getChannelName(channel: Channel): string {
+    // Use i18n translation, fallback to database name
+    try {
+      return t(`names.${channel.slug}`);
+    } catch {
+      return channel.name;
+    }
+  }
 
   useEffect(() => {
     async function fetchChannels() {
@@ -54,7 +65,7 @@ export function ChannelNav({ variant = "header", className }: ChannelNavProps) {
               href={`/c/${channel.slug}`}
               className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors whitespace-nowrap"
             >
-              {channel.emoji} {channel.name}
+              {channel.emoji} {getChannelName(channel)}
             </Link>
             {index < channels.length - 1 && (
               <span className="mx-1 text-[var(--color-border-hover)]">/</span>
@@ -88,7 +99,7 @@ export function ChannelNav({ variant = "header", className }: ChannelNavProps) {
             )}
           >
             <span className="mr-1">{channel.emoji}</span>
-            {channel.name}
+            {getChannelName(channel)}
           </Link>
           {index < channels.length - 1 && (
             <span className="text-[var(--color-border-hover)] mx-0.5">/</span>

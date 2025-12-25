@@ -20,8 +20,17 @@ interface ChannelWithCollections {
 export default function HomePage() {
   const t = useTranslations("home");
   const tc = useTranslations("common");
+  const tch = useTranslations("channel");
   const [channelsData, setChannelsData] = useState<ChannelWithCollections[]>([]);
   const [loading, setLoading] = useState(true);
+
+  function getChannelName(channel: Channel): string {
+    try {
+      return tch(`names.${channel.slug}`);
+    } catch {
+      return channel.name;
+    }
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -64,7 +73,7 @@ export default function HomePage() {
       collections.map((c) => ({
         ...c,
         channelSlug: channel.slug,
-        channelName: channel.name,
+        channelName: getChannelName(channel),
         channelEmoji: channel.emoji || "📚",
         channelColor: channel.color || "from-gray-400 to-gray-500",
       }))
@@ -118,7 +127,7 @@ export default function HomePage() {
                     )}
                   >
                     <span>{channel.emoji || "📚"}</span>
-                    {channel.name}
+                    {getChannelName(channel)}
                   </Link>
                 ))}
               </div>
@@ -240,7 +249,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <h3 className="font-display font-semibold text-[var(--color-foreground)] group-hover:text-[var(--color-accent)] transition-colors">
-                      {channel.name}
+                      {getChannelName(channel)}
                     </h3>
                     <p className="text-xs text-[var(--color-muted-foreground)]">
                       {collections.length} {tc("stats.collections").toLowerCase()}
@@ -337,7 +346,7 @@ export default function HomePage() {
                   href={`/c/${channel.slug}`}
                   className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
                 >
-                  {channel.emoji} {channel.name}
+                  {channel.emoji} {getChannelName(channel)}
                 </Link>
               ))}
             </nav>

@@ -20,8 +20,17 @@ function slugify(text: string): string {
 export default function ManagePage() {
   const t = useTranslations("manage");
   const tc = useTranslations("common");
+  const tch = useTranslations("channel");
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
+
+  function getChannelName(channel: Channel): string {
+    try {
+      return tch(`names.${channel.slug}`);
+    } catch {
+      return channel.name;
+    }
+  }
 
   const [formData, setFormData] = useState({
     channelId: "",
@@ -132,7 +141,7 @@ export default function ManagePage() {
               >
                 {channels.map((channel) => (
                   <option key={channel.id} value={channel.id}>
-                    {channel.name}
+                    {getChannelName(channel)}
                   </option>
                 ))}
               </select>
