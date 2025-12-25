@@ -11,8 +11,12 @@ collectionsRouter.get("/", async (c) => {
   const visibility = c.req.query("visibility") || "public";
 
   try {
+    // Use subquery to get actual document count instead of relying on source_count field
     let query = `
-      SELECT c.*, ch.slug as channel_slug, ch.name as channel_name
+      SELECT c.id, c.channel_id, c.user_id, c.title, c.slug, c.by, c.type,
+             c.visibility, c.vector_namespace, c.summary, c.created_at, c.updated_at,
+             (SELECT COUNT(*) FROM documents d WHERE d.collection_id = c.id) as source_count,
+             ch.slug as channel_slug, ch.name as channel_name
       FROM collections c
       JOIN channels ch ON c.channel_id = ch.id
       WHERE c.visibility = ?
@@ -45,7 +49,9 @@ collectionsRouter.get("/:id", async (c) => {
 
   try {
     const collection = await c.env.DB.prepare(
-      `SELECT c.*, ch.slug as channel_slug, ch.name as channel_name
+      `SELECT c.id, c.channel_id, c.user_id, c.title, c.slug, c.by, c.type,
+              c.visibility, c.vector_namespace, c.summary, c.created_at, c.updated_at,
+              ch.slug as channel_slug, ch.name as channel_name
        FROM collections c
        JOIN channels ch ON c.channel_id = ch.id
        WHERE c.id = ?`
@@ -67,6 +73,7 @@ collectionsRouter.get("/:id", async (c) => {
     return c.json({
       collection: toCamelCase({
         ...collection,
+        sourceCount: documents?.length || 0,
         documents,
       }),
     });
@@ -83,7 +90,9 @@ collectionsRouter.get("/by-slug/:channelSlug/:collectionSlug", async (c) => {
 
   try {
     const collection = await c.env.DB.prepare(
-      `SELECT c.*, ch.slug as channel_slug, ch.name as channel_name
+      `SELECT c.id, c.channel_id, c.user_id, c.title, c.slug, c.by, c.type,
+              c.visibility, c.vector_namespace, c.summary, c.created_at, c.updated_at,
+              ch.slug as channel_slug, ch.name as channel_name
        FROM collections c
        JOIN channels ch ON c.channel_id = ch.id
        WHERE ch.slug = ? AND c.slug = ?`
@@ -105,6 +114,7 @@ collectionsRouter.get("/by-slug/:channelSlug/:collectionSlug", async (c) => {
     return c.json({
       collection: toCamelCase({
         ...collection,
+        sourceCount: documents?.length || 0,
         documents,
       }),
     });
