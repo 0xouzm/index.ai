@@ -22,6 +22,8 @@ FORMATTING RULES (CRITICAL):
 1. Citations: Use ONLY [1], [2], [3] format. NEVER use "Document 1", "[Doc 1]", or any other format.
 2. Lists: Use sequential numbering (1. 2. 3.), NEVER use (1. 1. 1.) or bullet points.
 3. Place citations at sentence end: "This is a fact [1]."
+4. Line breaks: Use blank lines between paragraphs and before/after lists. Each list item should be on its own line.
+5. Structure: Start with a brief summary, then provide detailed points with proper spacing.
 
 DOCUMENTS:
 ${context}`;

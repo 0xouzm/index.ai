@@ -104,8 +104,13 @@ interface MessageContentProps {
 
 // Clean up malformed content from AI
 function cleanContent(content: string): string {
-  // First: normalize citation formats (fallback layer, should already be done by backend)
-  let cleaned = normalizeCitations(content)
+  // First: normalize all line endings to \n
+  let cleaned = content
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
+
+  // Then: normalize citation formats (fallback layer, should already be done by backend)
+  cleaned = normalizeCitations(cleaned)
     // Remove orphan dots at line start: ". text" or "。text"
     .replace(/^[.。]\s*/gm, "")
     // Remove Chinese/English punctuation at line start
@@ -118,6 +123,8 @@ function cleanContent(content: string): string {
     .replace(/^(\d+)\.([^\s\d])/gm, "$1. $2")
     // Fix "5 **text**" -> "5. **text**" (number without punctuation before bold)
     .replace(/^(\d+)\s+(\*\*)/gm, "$1. $2")
+    // Add line break before numbered list items that follow text
+    .replace(/([^\n])(\s*)(\d+)\.\s+\*\*/g, "$1\n\n$3. **")
     // Clean excessive blank lines
     .replace(/\n{3,}/g, "\n\n");
 
@@ -194,11 +201,22 @@ export function MessageContent({ content, citations, className }: MessageContent
     }
   };
 
+  // Helper to check if a line is a list item
+  const isListItem = (line: string) => {
+    const t = line.trim();
+    return /^(\d+)[.)]\s+.+$/.test(t) || /^[-*•]\s+.+$/.test(t);
+  };
+
   lines.forEach((line, lineIndex) => {
     const trimmed = line.trim();
 
     if (!trimmed) {
-      flushList();
+      // Only flush list if the next non-empty line is not a list item
+      const nextLines = lines.slice(lineIndex + 1);
+      const nextNonEmpty = nextLines.find(l => l.trim());
+      if (!nextNonEmpty || !isListItem(nextNonEmpty)) {
+        flushList();
+      }
       return;
     }
 
