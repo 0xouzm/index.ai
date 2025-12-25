@@ -1,7 +1,8 @@
 import { Hono } from "hono";
-import type { Env } from "../types/env";
+import type { AppEnv } from "../types/env";
+import { toCamelCase } from "../utils/case-transform";
 
-export const channelsRouter = new Hono<{ Bindings: Env }>();
+export const channelsRouter = new Hono<AppEnv>();
 
 // Get all channels
 channelsRouter.get("/", async (c) => {
@@ -10,7 +11,7 @@ channelsRouter.get("/", async (c) => {
       "SELECT * FROM channels ORDER BY name"
     ).all();
 
-    return c.json({ channels: results });
+    return c.json({ channels: toCamelCase(results) });
   } catch (error) {
     console.error("Error fetching channels:", error);
     return c.json({ error: "Failed to fetch channels" }, 500);
@@ -33,17 +34,17 @@ channelsRouter.get("/:slug", async (c) => {
     }
 
     // Get collection count
-    const { count } = await c.env.DB.prepare(
+    const countResult = await c.env.DB.prepare(
       "SELECT COUNT(*) as count FROM collections WHERE channel_id = ?"
     )
       .bind(channel.id)
       .first<{ count: number }>();
 
     return c.json({
-      channel: {
+      channel: toCamelCase({
         ...channel,
-        collectionCount: count || 0,
-      },
+        collectionCount: countResult?.count || 0,
+      }),
     });
   } catch (error) {
     console.error("Error fetching channel:", error);

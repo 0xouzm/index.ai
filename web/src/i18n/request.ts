@@ -10,12 +10,12 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   const messages = {
-    ...(await import(`../messages/${locale}/common.json`)).default,
-    ...(await import(`../messages/${locale}/home.json`)).default,
-    ...(await import(`../messages/${locale}/auth.json`)).default,
-    ...(await import(`../messages/${locale}/manage.json`)).default,
-    ...(await import(`../messages/${locale}/channel.json`)).default,
-    ...(await import(`../messages/${locale}/chat.json`)).default,
+    common: (await import(`../messages/${locale}/common.json`)).default,
+    home: (await import(`../messages/${locale}/home.json`)).default,
+    auth: (await import(`../messages/${locale}/auth.json`)).default,
+    manage: (await import(`../messages/${locale}/manage.json`)).default,
+    channel: (await import(`../messages/${locale}/channel.json`)).default,
+    chat: (await import(`../messages/${locale}/chat.json`)).default,
   };
 
   return {

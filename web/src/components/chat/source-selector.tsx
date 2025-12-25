@@ -186,7 +186,7 @@ export function SourceSelector({
                         {doc.title}
                       </p>
                       <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
-                        {doc.sourceType.toUpperCase()} · {doc.chunkCount} chunks
+                        {(doc.sourceType || "file").toUpperCase()} · {doc.chunkCount || 0} chunks
                       </p>
                     </div>
                   </button>

@@ -1,5 +1,5 @@
 import { Context, Next } from "hono";
-import type { Env } from "../types/env";
+import type { AppEnv } from "../types/env";
 
 // Simple JWT verification (for production, use a proper JWT library)
 interface JWTPayload {
@@ -97,7 +97,7 @@ export async function createJWT(
 
 // Auth middleware
 export function authMiddleware() {
-  return async (c: Context<{ Bindings: Env }>, next: Next) => {
+  return async (c: Context<AppEnv>, next: Next) => {
     const authHeader = c.req.header("Authorization");
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -129,7 +129,7 @@ export function authMiddleware() {
 
 // Optional auth middleware (doesn't fail if no token)
 export function optionalAuthMiddleware() {
-  return async (c: Context<{ Bindings: Env }>, next: Next) => {
+  return async (c: Context<AppEnv>, next: Next) => {
     const authHeader = c.req.header("Authorization");
 
     if (authHeader && authHeader.startsWith("Bearer ")) {

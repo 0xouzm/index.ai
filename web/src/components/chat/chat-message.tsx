@@ -134,15 +134,21 @@ function parseContentWithCitations(
   citations: Citation[]
 ): ReactNode[] {
   if (!citations || citations.length === 0) {
-    return [content];
+    // Even without citations, clean up invalid [Document] references
+    const cleaned = content.replace(/\[?\s*Doc(?:ument)?\s*\]|\bDocument\s*\]/gi, "");
+    return [cleaned];
   }
 
   const result: ReactNode[] = [];
 
-  // Match various citation patterns (including malformed ones from AI):
-  // [Document 1], [Document 1: Title], [1], [ Document 1], Document 1], [Doc 1]
-  // Also matches: Document 4] (missing opening bracket)
-  const citationPattern = /\[?\s*(?:Doc(?:ument)?\s*)?(\d+)(?::\s*[^\]]+)?\s*\]|\bDocument\s+(\d+)\]/gi;
+  // Combined pattern that matches:
+  // 1. Valid citations with numbers: [1], [Document 1], [Doc 1], etc.
+  // 2. Invalid citations without numbers: [Document], [Doc], etc. (to remove them)
+  // Pattern breakdown:
+  // - Group 1: Numbered citation - [Document X], [Doc X], [X], Document X]
+  // - Group 2: The actual number from numbered citation
+  // - Group 3: Invalid citation without number - [Document], [Doc]
+  const citationPattern = /(\[?\s*(?:Doc(?:ument)?\s*)?(\d+)(?::\s*[^\]]+)?\s*\]|\bDocument\s+(\d+)\])|(\[?\s*Doc(?:ument)?\s*\]|\bDocument\s*\])/gi;
 
   let lastIndex = 0;
   let match;
@@ -158,9 +164,15 @@ function parseContentWithCitations(
       );
     }
 
-    // Determine citation index (1-based in text, convert to 0-based)
-    // match[1] is from first pattern, match[2] is from second pattern (Document X])
-    const citationNum = match[1] || match[2];
+    // Check if this is an invalid citation (no number) - match[4]
+    if (match[4]) {
+      // Skip invalid citation - don't add anything to result
+      lastIndex = match.index + match[0].length;
+      continue;
+    }
+
+    // Valid citation with number
+    const citationNum = match[2] || match[3];
     const citationIndex = citationNum ? parseInt(citationNum, 10) - 1 : -1;
 
     if (citationIndex >= 0 && citationIndex < citations.length) {
@@ -172,14 +184,8 @@ function parseContentWithCitations(
           index={citationIndex}
         />
       );
-    } else {
-      // Keep original text if citation not found
-      result.push(
-        <Fragment key={`text-${keyIndex++}`}>
-          {match[0]}
-        </Fragment>
-      );
     }
+    // If citation index out of range, just skip it (don't show raw text)
 
     lastIndex = match.index + match[0].length;
   }

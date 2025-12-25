@@ -11,11 +11,18 @@ export interface Citation {
 export interface GenerationResult {
   answer: string;
   citations: Citation[];
+  thinkingSteps?: string[];
+}
+
+export interface ThinkingEvent {
+  type: "thinking" | "content" | "done";
+  content?: string;
+  step?: string;
 }
 
 // Kimi API (Moonshot AI) - OpenAI compatible
 const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
-const KIMI_MODEL = "moonshot-v1-32k";
+const KIMI_THINKING_MODEL = "kimi-thinking-preview";
 
 export async function generateAnswer(
   question: string,
@@ -50,11 +57,13 @@ export async function generateAnswer(
     systemPrompt = `You are an AI assistant for Index.ai, a knowledge portal.
 Your task is to answer questions based ONLY on the provided document excerpts.
 
-CRITICAL - CITATION FORMAT (YOU MUST FOLLOW THIS EXACTLY):
-- Cite sources using EXACTLY: [Document 1], [Document 2], [Document 3], etc.
-- Format MUST be "[Document X]" where X is the number
-- WRONG formats: "Document 1]", "[1]", "[ Document 1]", "Doc 1", "[doc 1]"
-- Place citation after the statement: "DeepSeek uses MoE [Document 1]."
+CITATION FORMAT - EXTREMELY IMPORTANT:
+- You MUST cite sources using: [1], [2], [3], etc.
+- Format is simple: just the number in square brackets
+- Example: "DeepSeek uses MoE [1]. It has 256 experts [2]."
+- NEVER write "[Document]" without a number - this is WRONG
+- NEVER write "[Document 1]" - use [1] instead
+- Every claim MUST have a citation number
 
 Rules:
 1. Only use information from the provided documents
@@ -120,9 +129,9 @@ Rules:
   const answer = data.choices[0]?.message?.content || "";
 
   // Extract citations - match various formats from AI:
-  // [Document 1], [Document 1: Title], [1], [ 1], [ Document 1], Document 4], etc.
+  // [1], [2], [Document 1], [Doc 1], etc.
   const citations: Citation[] = [];
-  const citationRegex = /\[?\s*(?:Doc(?:ument)?\s*)?(\d+)(?::\s*[^\]]+)?\s*\]|\bDocument\s+(\d+)\]/gi;
+  const citationRegex = /\[\s*(\d+)\s*\]|\[?\s*(?:Doc(?:ument)?\s*)?(\d+)(?::\s*[^\]]+)?\s*\]/gi;
   const matches = answer.matchAll(citationRegex);
 
   const seenDocs = new Set<number>();
@@ -175,11 +184,13 @@ export async function* streamAnswer(
     systemPrompt = `You are an AI assistant for Index.ai, a knowledge portal.
 Your task is to answer questions based ONLY on the provided document excerpts.
 
-CRITICAL - CITATION FORMAT (YOU MUST FOLLOW THIS EXACTLY):
-- Cite sources using EXACTLY: [Document 1], [Document 2], [Document 3], etc.
-- Format MUST be "[Document X]" where X is the number
-- WRONG formats: "Document 1]", "[1]", "[ Document 1]", "Doc 1", "[doc 1]"
-- Place citation after the statement: "DeepSeek uses MoE [Document 1]."
+CITATION FORMAT - EXTREMELY IMPORTANT:
+- You MUST cite sources using: [1], [2], [3], etc.
+- Format is simple: just the number in square brackets
+- Example: "DeepSeek uses MoE [1]. It has 256 experts [2]."
+- NEVER write "[Document]" without a number - this is WRONG
+- NEVER write "[Document 1]" - use [1] instead
+- Every claim MUST have a citation number
 
 Rules:
 1. Only use information from the provided documents
@@ -257,9 +268,9 @@ ${context}`;
   }
 
   // Extract citations - match various formats from AI:
-  // [Document 1], [Document 1: Title], [1], [ 1], [ Document 1], Document 4], etc.
+  // [1], [2], [Document 1], [Doc 1], etc.
   const citations: Citation[] = [];
-  const citationRegex = /\[?\s*(?:Doc(?:ument)?\s*)?(\d+)(?::\s*[^\]]+)?\s*\]|\bDocument\s+(\d+)\]/gi;
+  const citationRegex = /\[\s*(\d+)\s*\]|\[?\s*(?:Doc(?:ument)?\s*)?(\d+)(?::\s*[^\]]+)?\s*\]/gi;
   const matches = fullAnswer.matchAll(citationRegex);
   const seenDocs = new Set<number>();
 

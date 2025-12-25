@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { Env } from "../types/env";
+import type { AppEnv } from "../types/env";
 import {
   createJWT,
   hashPassword,
@@ -7,7 +7,7 @@ import {
   authMiddleware,
 } from "../middleware/auth";
 
-export const authRouter = new Hono<{ Bindings: Env }>();
+export const authRouter = new Hono<AppEnv>();
 
 interface RegisterRequest {
   email: string;

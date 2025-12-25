@@ -49,21 +49,6 @@
   --radius-lg: 0.75rem;
 }
 
-/* Dark mode overrides */
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-background: #0f0f0f;
-    --color-foreground: #fafafa;
-    --color-muted: #1a1a1a;
-    --color-muted-foreground: #a0a0a0;
-    --color-accent: #E53E3E;
-    --color-accent-foreground: #ffffff;
-    --color-border: #2a2a2a;
-    --color-card: #171717;
-    --color-card-foreground: #fafafa;
-  }
-}
-
 /* Base styles */
 html {
   font-family: var(--font-body);

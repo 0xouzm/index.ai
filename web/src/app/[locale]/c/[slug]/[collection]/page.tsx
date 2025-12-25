@@ -5,13 +5,9 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
-import { SourceSelector, ChatMessage, StudioPanel } from "@/components/chat";
+import { SourceSelector, ChatMessage, StudioPanel, ThinkingIndicator, type ThinkingPhase } from "@/components/chat";
 import { UploadDialog } from "@/components/documents/upload-dialog";
-import {
-  getCollection,
-  sendChatQueryStream,
-  type StreamEvent,
-} from "@/lib/api";
+import { getCollection, sendChatQuery } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type {
   Document,
@@ -39,6 +35,7 @@ export default function CollectionPage({ params }: CollectionPageProps) {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [thinkingPhase, setThinkingPhase] = useState<ThinkingPhase | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [showMobileSources, setShowMobileSources] = useState(false);
   const [showStudio, setShowStudio] = useState(true);
@@ -107,73 +104,62 @@ export default function CollectionPage({ params }: CollectionPageProps) {
     const question = inputValue;
     setInputValue("");
     setIsLoading(true);
+    setThinkingPhase("searching");
 
-    const aiMessageId = `msg-${Date.now() + 1}`;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: aiMessageId,
-        role: "assistant",
-        content: "",
-        source: "archive",
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+    // Auto-advance thinking phases
+    const timer1 = setTimeout(() => setThinkingPhase("analyzing"), 1500);
+    const timer2 = setTimeout(() => setThinkingPhase("generating"), 3500);
 
     try {
-      await sendChatQueryStream(
-        {
-          collectionId: collection.id,
-          question,
-          documentIds:
-            selectedDocIds.size > 0 ? Array.from(selectedDocIds) : undefined,
-        },
-        (event: StreamEvent) => {
-          if (event.type === "start") {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === aiMessageId
-                  ? { ...msg, source: event.source || "archive" }
-                  : msg
-              )
-            );
-          } else if (event.type === "content" && event.content) {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === aiMessageId
-                  ? { ...msg, content: msg.content + event.content }
-                  : msg
-              )
-            );
-          } else if (event.type === "end") {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === aiMessageId
-                  ? { ...msg, citations: event.citations }
-                  : msg
-              )
-            );
-          } else if (event.type === "error") {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === aiMessageId
-                  ? { ...msg, content: `Error: ${event.error}` }
-                  : msg
-              )
-            );
-          }
-        }
-      );
+      const result = await sendChatQuery({
+        collectionId: collection.id,
+        question,
+        documentIds: selectedDocIds.size > 0 ? Array.from(selectedDocIds) : undefined,
+      });
+
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+
+      if (result.error || !result.data) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `msg-${Date.now() + 1}`,
+            role: "assistant",
+            content: `Error: ${result.error || "Failed to get response"}`,
+            source: "archive",
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `msg-${Date.now() + 1}`,
+            role: "assistant",
+            content: result.data.answer,
+            source: result.data.source,
+            citations: result.data.citations,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      }
     } catch (err) {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === aiMessageId
-            ? { ...msg, content: `Error: ${err instanceof Error ? err.message : "Failed"}` }
-            : msg
-        )
-      );
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `msg-${Date.now() + 1}`,
+          role: "assistant",
+          content: `Error: ${err instanceof Error ? err.message : "Failed"}`,
+          source: "archive",
+          createdAt: new Date().toISOString(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
+      setThinkingPhase(null);
     }
   };
 
@@ -265,6 +251,7 @@ export default function CollectionPage({ params }: CollectionPageProps) {
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
               {messages.map((message) => <ChatMessage key={message.id} message={message} />)}
+              {thinkingPhase && <ThinkingIndicator phase={thinkingPhase} />}
               <div ref={messagesEndRef} />
             </div>
           </div>

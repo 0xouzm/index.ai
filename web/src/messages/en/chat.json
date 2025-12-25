@@ -68,5 +68,10 @@
     "lastUpdated": "Last updated:",
     "grounded": "AI responses are grounded in your documents"
   },
+  "thinking": {
+    "searching": "Searching documents",
+    "analyzing": "Analyzing content",
+    "generating": "Generating response"
+  },
   "loading": "Loading collection..."
 }

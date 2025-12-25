@@ -68,5 +68,10 @@
     "lastUpdated": "最后更新：",
     "grounded": "AI 回复基于您的文档"
   },
+  "thinking": {
+    "searching": "检索文档",
+    "analyzing": "分析内容",
+    "generating": "生成回复"
+  },
   "loading": "正在加载合集..."
 }

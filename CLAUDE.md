@@ -111,3 +111,34 @@ NEXT_PUBLIC_API_URL=https://api.index.ai   # Prod
 4. **Directory limits**: Max 8 files per directory (create subdirectories if exceeded)
 5. **ESM only** - no CommonJS modules
 6. **Path aliases**: Use `@/` to import from `src/` in both web and server
+7. **No auto-deploy** - all development and testing must be done locally, do not run deploy commands
+
+## Naming Convention (snake_case vs camelCase)
+
+This project uses a unified naming convention across the full stack:
+
+| Layer | Convention | Example |
+|-------|------------|---------|
+| Database tables/columns | `snake_case` | `channel_id`, `created_at` |
+| SQL queries | `snake_case` | `SELECT channel_id FROM collections` |
+| API request/response JSON | `camelCase` | `{ "channelId": "...", "createdAt": "..." }` |
+| TypeScript code (both frontend & backend) | `camelCase` | `const channelId = ...` |
+| TypeScript types/interfaces | `PascalCase` for types, `camelCase` for properties | `interface Collection { channelId: string }` |
+
+### Case Transformation
+
+Use the utility functions in `server/src/utils/case-transform.ts`:
+
+```typescript
+import { toCamelCase, toSnakeCase } from "@/utils/case-transform";
+
+// Database -> API response
+const dbResult = await db.prepare("SELECT * FROM collections").all();
+return c.json({ collections: toCamelCase(dbResult.results) });
+
+// API request body -> Database insert
+const body = await c.req.json();
+const dbData = toSnakeCase(body);
+```
+
+**Important**: All API endpoints MUST transform database results to camelCase before returning to the frontend. The frontend should never receive snake_case keys.

@@ -1,7 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { routing } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
@@ -29,12 +28,10 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale}>
       <body className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)]">
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>
