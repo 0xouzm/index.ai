@@ -9,6 +9,8 @@ export interface RetrievedChunk {
   metadata: {
     page?: number;
     section?: string;
+    startChar?: number;
+    endChar?: number;
   };
 }
 
@@ -42,17 +44,19 @@ export async function retrieveChunks(
     return { chunks: [], hasRelevantResults: false };
   }
 
-  // Query Vectorize without filter for now (testing)
-  // TODO: Re-enable namespace filter once data is properly indexed
+  // Query Vectorize with namespace filter only
+  // Note: document_id filtering requires a metadata index which hasn't been created
+  // We filter by documentIds in the application layer after retrieval
   const results = await env.VECTORIZE.query(embedding, {
-    topK,
+    topK: options?.documentIds ? topK * 3 : topK, // Fetch more if we need to filter
     returnMetadata: "all",
+    filter: { namespace: namespace },
   });
 
-  console.log(`Vectorize query returned ${results.matches.length} results`);
+  console.log(`Vectorize query for namespace: ${namespace}, returned ${results.matches.length} results`);
 
-  // Transform results
-  const chunks: RetrievedChunk[] = results.matches.map((match) => ({
+  // Transform results (include position info for context expansion)
+  let chunks: RetrievedChunk[] = results.matches.map((match) => ({
     id: match.id,
     documentId: (match.metadata?.document_id as string) || "",
     content: (match.metadata?.content as string) || "",
@@ -60,8 +64,17 @@ export async function retrieveChunks(
     metadata: {
       page: match.metadata?.page as number | undefined,
       section: match.metadata?.section as string | undefined,
+      startChar: match.metadata?.start_char as number | undefined,
+      endChar: match.metadata?.end_char as number | undefined,
     },
   }));
+
+  // Application-layer filtering by documentIds (since Vectorize needs metadata index)
+  if (options?.documentIds && options.documentIds.length > 0) {
+    const docIdSet = new Set(options.documentIds);
+    chunks = chunks.filter((chunk) => docIdSet.has(chunk.documentId));
+    console.log(`Filtered to ${chunks.length} chunks from selected documents`);
+  }
 
   // Check if we have relevant results
   const hasRelevantResults =

@@ -20,9 +20,14 @@ export function buildSystemPrompt(source: "archive" | "web", context: string): s
 
 FORMATTING RULES (CRITICAL):
 1. Language: ALWAYS respond in the SAME language as the user's question. If question is in Chinese, answer in Chinese. If in English, answer in English.
-2. Citations: Use ONLY [1], [2], [3] format. NEVER use "Document 1", "[Doc 1]", or any other format.
+2. Citations: Use ONLY [1], [2], [3] format. NEVER use "Document 1", "[Doc 1]", "**1**", or any other format.
 3. Lists: Use sequential numbering (1. 2. 3.), NEVER use (1. 1. 1.) or bullet points.
-4. Place citations at sentence end: "This is a fact [1]."
+4. Citation placement (VERY IMPORTANT):
+   - ALWAYS place citations at the END of sentences or phrases, NEVER at the beginning
+   - CORRECT: "This document discusses work-life balance [3]."
+   - WRONG: "[3] This document discusses work-life balance."
+   - WRONG: "**3** This document discusses..."
+   - When describing a document, put the citation AFTER the description, not before
 5. Line breaks: Use blank lines between paragraphs and before/after lists. Each list item should be on its own line.
 6. NO markdown headers: NEVER use # or ## or ### headers. Use **bold text** for emphasis instead.
 7. Structure:
