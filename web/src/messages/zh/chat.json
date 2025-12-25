@@ -13,7 +13,8 @@
     "selectAll": "全选来源",
     "selected": "已选择 {count} 个来源",
     "selectedPlural": "已选择 {count} 个来源",
-    "of": "已选择 {selected}/{total} 个来源"
+    "of": "已选择 {selected}/{total} 个来源",
+    "guide": "来源指南"
   },
   "message": {
     "assistant": "Index AI",
@@ -57,6 +58,12 @@
       "add": "添加文档",
       "adding": "处理中...",
       "cancel": "取消"
+    },
+    "steps": {
+      "fetching": "正在获取 URL 内容",
+      "analyzing": "AI 分析中（生成摘要和主题）",
+      "embedding": "创建搜索向量",
+      "hint": "根据文档大小，可能需要 20-40 秒"
     },
     "errors": {
       "titleRequired": "标题为必填项",

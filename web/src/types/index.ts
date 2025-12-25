@@ -35,6 +35,9 @@ export interface Document {
   sourceType: SourceType;
   sourceUrl?: string;
   summary?: string;
+  topics?: string[];
+  content?: string;
+  processedContent?: string;
   chunkCount: number;
   tokenCount: number;
   createdAt: string;
@@ -75,6 +78,7 @@ export interface Citation {
   documentId: string;
   documentTitle: string;
   chunkContent: string;
+  expandedContent?: string; // Expanded content with surrounding context
   page?: number;
 }
 

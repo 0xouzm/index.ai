@@ -1,5 +1,6 @@
 import type { Env } from "../types/env";
 import type { RetrievedChunk } from "./retrieval";
+import type { ExpandedChunk } from "./context-expander";
 import { buildContext, buildSystemPrompt } from "./prompt-builder";
 import { normalizeCitations } from "../utils/citation-normalizer";
 
@@ -8,6 +9,7 @@ export interface Citation {
   documentId: string;
   documentTitle: string;
   chunkContent: string;
+  expandedContent?: string; // Expanded content for display (with surrounding context)
   page?: number;
 }
 
@@ -20,10 +22,10 @@ export interface GenerationResult {
 const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
 const KIMI_MODEL = "moonshot-v1-32k";
 
-// Extract citations from answer text
+// Extract citations from answer text (supports both RetrievedChunk and ExpandedChunk)
 function extractCitations(
   answer: string,
-  chunks: RetrievedChunk[],
+  chunks: (RetrievedChunk | ExpandedChunk)[],
   documentTitles: Map<string, string>
 ): Citation[] {
   // Normalize citations first to ensure consistent [N] format
@@ -40,15 +42,16 @@ function extractCitations(
     if (docIdx >= 0 && docIdx < chunks.length && !seenDocs.has(docIdx)) {
       seenDocs.add(docIdx);
       const chunk = chunks[docIdx];
-      // Provide full context - up to 2000 chars for complete paragraphs
-      const contentPreview = chunk.content.length > 2000
-        ? chunk.content.substring(0, 2000) + "..."
-        : chunk.content;
+      // Check if chunk has expanded content
+      const expandedChunk = chunk as ExpandedChunk;
+      const hasExpansion = "expandedContent" in chunk && expandedChunk.hasExpansion;
+
       citations.push({
-        sourceIndex, // 1-based index matching [N] in the answer
+        sourceIndex,
         documentId: chunk.documentId,
         documentTitle: documentTitles.get(chunk.documentId) || "Unknown",
-        chunkContent: contentPreview,
+        chunkContent: chunk.content,
+        expandedContent: hasExpansion ? expandedChunk.expandedContent : undefined,
         page: chunk.metadata.page,
       });
     }
@@ -59,7 +62,7 @@ function extractCitations(
 
 export async function generateAnswer(
   question: string,
-  chunks: RetrievedChunk[],
+  chunks: (RetrievedChunk | ExpandedChunk)[],
   documentTitles: Map<string, string>,
   env: Env,
   options?: { source: "archive" | "web" }

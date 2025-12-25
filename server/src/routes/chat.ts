@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../types/env";
 import { retrieveChunks, webSearch } from "../services/retrieval";
+import { expandAllChunks } from "../services/context-expander";
 import { generateAnswer } from "../services/generation";
 import { cleanAnswerFormat } from "../services/prompt-builder";
 
@@ -18,6 +19,7 @@ interface Citation {
   documentId: string;
   documentTitle: string;
   chunkContent: string;
+  expandedContent?: string;
   page?: number;
 }
 
@@ -102,9 +104,14 @@ chatRouter.post("/query", async (c) => {
       } as QueryResponse);
     }
 
+    // Expand chunks with surrounding context for better citation display
+    const expandedChunks = source === "archive"
+      ? await expandAllChunks(chunks, c.env, { expandChars: 500, ensureParagraph: true })
+      : chunks.map((chunk) => ({ ...chunk, expandedContent: chunk.content, hasExpansion: false }));
+
     const generationResult = await generateAnswer(
       question,
-      chunks,
+      expandedChunks,
       documentTitles,
       c.env,
       { source }

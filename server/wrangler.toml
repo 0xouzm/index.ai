@@ -28,7 +28,7 @@ binding = "AI"
 
 # Environment Variables
 [vars]
-ENVIRONMENT = "development"
+ENVIRONMENT = "production"
 
 # Development settings
 [dev]

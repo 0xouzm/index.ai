@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
-import { SourceSelector, ChatMessage, StudioPanel, LoadingIndicator } from "@/components/chat";
+import { SourceSelector, SourceGuide, ChatMessage, StudioPanel, LoadingIndicator } from "@/components/chat";
 import { UploadDialog } from "@/components/documents/upload-dialog";
 import { getCollection } from "@/lib/api";
 import { useChat } from "@/hooks/use-chat";
@@ -31,9 +31,13 @@ export default function CollectionPage({ params }: CollectionPageProps) {
   const [showUpload, setShowUpload] = useState(false);
   const [showMobileSources, setShowMobileSources] = useState(false);
   const [showStudio, setShowStudio] = useState(true);
+  const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [isResizing, setIsResizing] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
 
   const { messages, setMessages, isLoading, sendMessage } = useChat({
     collectionId: collection?.id || "",
@@ -83,12 +87,67 @@ export default function CollectionPage({ params }: CollectionPageProps) {
     setSelectedDocIds((prev) => (prev.size === allIds.length ? new Set() : new Set(allIds)));
   }, [collection]);
 
+  const handleDocumentUpdate = useCallback((updatedDoc: Document) => {
+    setCollection((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        documents: prev.documents.map((d) =>
+          d.id === updatedDoc.id ? updatedDoc : d
+        ),
+      };
+    });
+  }, []);
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading || !collection) return;
     const question = inputValue;
     setInputValue("");
     await sendMessage(question);
   };
+
+  // Sidebar resize handlers
+  const MIN_SIDEBAR_WIDTH = 280;
+  const MAX_SIDEBAR_WIDTH = 600;
+  const EXPANDED_SIDEBAR_WIDTH = 400;
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [isResizing]);
+
+  // Auto-expand sidebar when viewing document
+  useEffect(() => {
+    if (viewingDocument) {
+      setSidebarWidth((prev) => Math.max(prev, EXPANDED_SIDEBAR_WIDTH));
+    }
+  }, [viewingDocument]);
 
   const lastUpdated = useMemo(() => {
     if (!collection) return null;
@@ -118,7 +177,7 @@ export default function CollectionPage({ params }: CollectionPageProps) {
   const documents = collection.documents || [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
+    <div className="h-screen flex flex-col bg-[var(--color-background)] overflow-hidden">
       <Header />
       <UploadDialog collectionId={collection.id} isOpen={showUpload} onClose={() => setShowUpload(false)} onSuccess={() => fetchData()} />
 
@@ -135,16 +194,37 @@ export default function CollectionPage({ params }: CollectionPageProps) {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sources Sidebar */}
-        <aside className={cn("w-[280px] flex-shrink-0 border-r border-[var(--color-border)] hidden lg:flex flex-col", showMobileSources && "!flex fixed inset-0 z-50 w-full bg-[var(--color-background)]")}>
+        <aside
+          ref={sidebarRef}
+          style={{ width: showMobileSources ? "100%" : sidebarWidth }}
+          className={cn(
+            "flex-shrink-0 border-r border-[var(--color-border)] hidden lg:flex flex-col overflow-hidden relative",
+            showMobileSources && "!flex fixed inset-0 z-50 bg-[var(--color-background)]"
+          )}
+        >
           {showMobileSources && (
             <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
               <h2 className="font-display font-semibold">{t("sources.title")}</h2>
-              <button onClick={() => setShowMobileSources(false)} className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-[var(--color-muted)]">
+              <button onClick={() => { setShowMobileSources(false); setViewingDocument(null); }} className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-[var(--color-muted)]">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
           )}
-          <SourceSelector documents={documents} selectedIds={selectedDocIds} onToggle={handleToggleDoc} onToggleAll={handleToggleAll} onAddClick={() => { setShowUpload(true); setShowMobileSources(false); }} />
+          {viewingDocument ? (
+            <SourceGuide document={viewingDocument} onBack={() => setViewingDocument(null)} onDocumentUpdate={handleDocumentUpdate} />
+          ) : (
+            <SourceSelector documents={documents} selectedIds={selectedDocIds} onToggle={handleToggleDoc} onToggleAll={handleToggleAll} onAddClick={() => { setShowUpload(true); setShowMobileSources(false); }} onDocumentClick={(doc) => setViewingDocument(doc)} />
+          )}
+          {/* Resize Handle */}
+          <div
+            onMouseDown={handleMouseDown}
+            className={cn(
+              "absolute top-0 right-0 w-1 h-full cursor-col-resize",
+              "hover:bg-[var(--color-accent)]/30 transition-colors",
+              "hidden lg:block",
+              isResizing && "bg-[var(--color-accent)]/50"
+            )}
+          />
         </aside>
 
         {/* Main Chat Area */}

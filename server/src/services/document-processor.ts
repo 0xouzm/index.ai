@@ -6,11 +6,14 @@
 import type { Env } from "../types/env";
 import { chunkMarkdown, estimateTokens, type Chunk } from "./chunking";
 import { getEmbeddings, EMBEDDING_DIMENSIONS } from "./embedding";
+import { analyzeSource } from "./source-analyzer";
 
 export interface ProcessDocumentResult {
   success: boolean;
   chunkCount: number;
   tokenCount: number;
+  summary?: string;
+  topics?: string[];
   error?: string;
 }
 
@@ -43,8 +46,12 @@ export async function processDocument(
       return { success: false, chunkCount: 0, tokenCount: 0, error: "No content to process" };
     }
 
-    // Step 2: Chunk the content
-    const chunks = chunkMarkdown(content, {
+    // Step 2: Analyze source with AI (generates summary, topics, and cleaned content)
+    const analysis = await analyzeSource(content, env);
+    const processedContent = analysis.processedContent || content;
+
+    // Step 3: Chunk the processed content (small chunks for precise search)
+    const chunks = chunkMarkdown(processedContent, {
       maxChunkSize: 1500,
       chunkOverlap: 200,
       minChunkSize: 100,
@@ -54,11 +61,11 @@ export async function processDocument(
       return { success: false, chunkCount: 0, tokenCount: 0, error: "No chunks generated" };
     }
 
-    // Step 3: Generate embeddings
+    // Step 4: Generate embeddings
     const chunkTexts = chunks.map((c) => c.content);
     const embeddings = await getEmbeddings(chunkTexts, env);
 
-    // Step 4: Store in Vectorize
+    // Step 5: Store in Vectorize (include position info for context expansion)
     const vectors = chunks.map((chunk, idx) => ({
       id: `${doc.id}_chunk_${idx}`,
       values: embeddings[idx].embedding,
@@ -70,6 +77,8 @@ export async function processDocument(
         chunk_index: chunk.index,
         section: chunk.metadata.section || "",
         title: doc.title,
+        start_char: chunk.metadata.startChar,
+        end_char: chunk.metadata.endChar,
       },
     }));
 
@@ -85,6 +94,16 @@ export async function processDocument(
       console.warn("Vectorize not available or in dev mode, skipping vector storage");
     }
 
+    // Step 6: Save content, processed content, summary and topics to database
+    const topicsJson = JSON.stringify(analysis.topics);
+    await env.DB.prepare(
+      `UPDATE documents
+       SET content = ?, processed_content = ?, summary = ?, topics = ?
+       WHERE id = ?`
+    )
+      .bind(content, processedContent, analysis.summary, topicsJson, doc.id)
+      .run();
+
     // Calculate total tokens
     const totalTokens = chunks.reduce((sum, chunk) => sum + estimateTokens(chunk.content), 0);
 
@@ -92,6 +111,8 @@ export async function processDocument(
       success: true,
       chunkCount: chunks.length,
       tokenCount: totalTokens,
+      summary: analysis.summary,
+      topics: analysis.topics,
     };
   } catch (error) {
     console.error("Error processing document:", error);

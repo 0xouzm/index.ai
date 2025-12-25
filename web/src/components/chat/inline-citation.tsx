@@ -127,14 +127,13 @@ export function InlineCitation({ citation, index }: InlineCitationProps) {
     return result;
   };
 
-  // Show full content - up to 1500 chars for complete paragraphs with context
+  // Prefer expandedContent (with surrounding context) over chunkContent
   // Normalize line endings for consistent display
-  const normalizedContent = citation.chunkContent
-    ? citation.chunkContent.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+  const rawContent = citation.expandedContent || citation.chunkContent;
+  const normalizedContent = rawContent
+    ? rawContent.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
     : null;
-  const previewContent = normalizedContent && normalizedContent.length > 1500
-    ? normalizedContent.slice(0, 1500) + "..."
-    : normalizedContent || t("message.noContent");
+  const previewContent = normalizedContent || t("message.noContent");
 
   // Use sourceIndex directly for display (already 1-based)
   const displayNum = citation.sourceIndex;

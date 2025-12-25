@@ -9,6 +9,7 @@ interface StudioPanelProps {
   selectedDocIds: Set<string>;
   isCollapsed?: boolean;
   onToggle?: () => void;
+  onSuggestionClick?: (prompt: string) => void;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export function StudioPanel({
   selectedDocIds,
   isCollapsed,
   onToggle,
+  onSuggestionClick,
   className,
 }: StudioPanelProps) {
   const t = useTranslations("chat");
@@ -131,13 +133,14 @@ export function StudioPanel({
             </h4>
             <div className="space-y-2">
               {[
-                { icon: "📝", labelKey: "summarize" as const },
-                { icon: "🔍", labelKey: "insights" as const },
-                { icon: "📊", labelKey: "compare" as const },
-                { icon: "❓", labelKey: "faq" as const },
+                { icon: "📝", labelKey: "summarize" as const, prompt: "Please summarize the selected documents, highlighting the main themes and key takeaways." },
+                { icon: "🔍", labelKey: "insights" as const, prompt: "What are the key insights and important findings from these documents?" },
+                { icon: "📊", labelKey: "compare" as const, prompt: "Compare and contrast the main ideas across the selected documents." },
+                { icon: "❓", labelKey: "faq" as const, prompt: "Generate a list of frequently asked questions based on these documents with brief answers." },
               ].map((action, idx) => (
                 <button
                   key={idx}
+                  onClick={() => onSuggestionClick?.(action.prompt)}
                   className={cn(
                     "w-full flex items-center gap-2 px-3 py-2 rounded-lg",
                     "text-sm text-left",

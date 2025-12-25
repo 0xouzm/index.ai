@@ -13,7 +13,8 @@
     "selectAll": "Select all sources",
     "selected": "{count} source selected",
     "selectedPlural": "{count} sources selected",
-    "of": "{selected} of {total} sources selected"
+    "of": "{selected} of {total} sources selected",
+    "guide": "Source Guide"
   },
   "message": {
     "assistant": "Index AI",
@@ -57,6 +58,12 @@
       "add": "Add Document",
       "adding": "Processing...",
       "cancel": "Cancel"
+    },
+    "steps": {
+      "fetching": "Fetching content from URL",
+      "analyzing": "Analyzing with AI (generating summary & topics)",
+      "embedding": "Creating embeddings for search",
+      "hint": "This may take 20-40 seconds depending on document size"
     },
     "errors": {
       "titleRequired": "Title is required",

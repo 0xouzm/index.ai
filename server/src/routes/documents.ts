@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { AppEnv } from "../types/env";
 import { toCamelCase } from "../utils/case-transform";
 import { processDocument, deleteDocumentVectors } from "../services/document-processor";
+import { analyzeSource } from "../services/source-analyzer";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/auth";
 
 export const documentsRouter = new Hono<AppEnv>();
@@ -47,12 +48,12 @@ documentsRouter.post("/", optionalAuthMiddleware(), async (c) => {
     // Generate document ID
     const docId = `doc-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
-    // Insert document with pending status
+    // Insert document with pending status (content will be updated after processing for URL type)
     await c.env.DB.prepare(
-      `INSERT INTO documents (id, collection_id, title, source_type, source_url, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 'processing', datetime('now'), datetime('now'))`
+      `INSERT INTO documents (id, collection_id, title, source_type, source_url, content, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'processing', datetime('now'), datetime('now'))`
     )
-      .bind(docId, collectionId, title, sourceType, sourceUrl || null)
+      .bind(docId, collectionId, title, sourceType, sourceUrl || null, content || null)
       .run();
 
     // Process document (chunking, embedding, vector storage)
@@ -210,6 +211,7 @@ documentsRouter.post("/:id/reprocess", optionalAuthMiddleware(), async (c) => {
         title: string;
         source_type: string;
         source_url: string | null;
+        content: string | null;
         vector_namespace: string;
         chunk_count: number;
       }>();
@@ -230,8 +232,7 @@ documentsRouter.post("/:id/reprocess", optionalAuthMiddleware(), async (c) => {
       .bind(id)
       .run();
 
-    // Reprocess - for URL type, we can refetch; for markdown, we need stored content
-    // Note: Current schema doesn't store markdown content, which is a limitation
+    // Reprocess - for URL type, we can refetch; for markdown, use stored content
     const result = await processDocument(
       {
         id: document.id,
@@ -240,6 +241,7 @@ documentsRouter.post("/:id/reprocess", optionalAuthMiddleware(), async (c) => {
         title: document.title,
         sourceType: document.source_type as "url" | "markdown",
         sourceUrl: document.source_url || undefined,
+        content: document.content || undefined,
       },
       c.env
     );
@@ -270,5 +272,62 @@ documentsRouter.post("/:id/reprocess", optionalAuthMiddleware(), async (c) => {
   } catch (error) {
     console.error("Error reprocessing document:", error);
     return c.json({ error: "Failed to reprocess document" }, 500);
+  }
+});
+
+// Analyze document (generate summary and topics with AI)
+documentsRouter.post("/:id/analyze", optionalAuthMiddleware(), async (c) => {
+  const id = c.req.param("id");
+
+  try {
+    const document = await c.env.DB.prepare(
+      "SELECT id, content, processed_content, summary, topics FROM documents WHERE id = ?"
+    )
+      .bind(id)
+      .first<{
+        id: string;
+        content: string | null;
+        processed_content: string | null;
+        summary: string | null;
+        topics: string | null;
+      }>();
+
+    if (!document) {
+      return c.json({ error: "Document not found" }, 404);
+    }
+
+    // Use processed_content if available, otherwise use raw content
+    const contentToAnalyze = document.processed_content || document.content;
+
+    if (!contentToAnalyze) {
+      return c.json({ error: "No content available for analysis" }, 400);
+    }
+
+    // Call AI to analyze
+    const analysis = await analyzeSource(contentToAnalyze, c.env);
+
+    // Update document with analysis results
+    await c.env.DB.prepare(
+      `UPDATE documents
+       SET summary = ?, topics = ?, processed_content = ?, updated_at = datetime('now')
+       WHERE id = ?`
+    )
+      .bind(
+        analysis.summary,
+        JSON.stringify(analysis.topics),
+        analysis.processedContent,
+        id
+      )
+      .run();
+
+    // Fetch updated document
+    const updated = await c.env.DB.prepare("SELECT * FROM documents WHERE id = ?")
+      .bind(id)
+      .first();
+
+    return c.json({ document: toCamelCase(updated) });
+  } catch (error) {
+    console.error("Error analyzing document:", error);
+    return c.json({ error: "Failed to analyze document" }, 500);
   }
 });

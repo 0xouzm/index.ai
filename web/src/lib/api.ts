@@ -196,6 +196,10 @@ export async function deleteDocument(id: string): Promise<ApiResponse<{ success:
   return fetchApi(`/api/v1/documents/${id}`, { method: "DELETE" });
 }
 
+export async function analyzeDocument(id: string): Promise<ApiResponse<{ document: Document }>> {
+  return fetchApi(`/api/v1/documents/${id}/analyze`, { method: "POST" });
+}
+
 // Collections management
 export interface CreateCollectionRequest {
   channelId: string;

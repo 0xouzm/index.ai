@@ -10,6 +10,7 @@ interface SourceSelectorProps {
   onToggle: (id: string) => void;
   onToggleAll: () => void;
   onAddClick: () => void;
+  onDocumentClick?: (doc: Document) => void;
   className?: string;
 }
 
@@ -83,6 +84,7 @@ export function SourceSelector({
   onToggle,
   onToggleAll,
   onAddClick,
+  onDocumentClick,
   className,
 }: SourceSelectorProps) {
   const t = useTranslations("chat");
@@ -160,8 +162,7 @@ export function SourceSelector({
               const isSelected = selectedIds.has(doc.id);
               return (
                 <li key={doc.id}>
-                  <button
-                    onClick={() => onToggle(doc.id)}
+                  <div
                     className={cn(
                       "w-full flex items-start gap-3 px-4 py-2.5 group",
                       "text-left transition-colors",
@@ -170,26 +171,36 @@ export function SourceSelector({
                         : "hover:bg-[var(--color-muted)]"
                     )}
                   >
-                    <Checkbox checked={isSelected} />
-                    <div className={cn(
-                      "flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center",
-                      "bg-[var(--color-muted)]",
-                      isSelected && "bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                    )}>
-                      <DocumentIcon type={doc.sourceType} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        "text-sm font-medium truncate",
-                        isSelected ? "text-[var(--color-accent)]" : "text-[var(--color-foreground)]"
+                    <button
+                      onClick={() => onToggle(doc.id)}
+                      className="flex-shrink-0 mt-0.5"
+                    >
+                      <Checkbox checked={isSelected} />
+                    </button>
+                    <button
+                      onClick={() => onDocumentClick?.(doc)}
+                      className="flex-1 flex items-start gap-3 text-left min-w-0"
+                    >
+                      <div className={cn(
+                        "flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center",
+                        "bg-[var(--color-muted)]",
+                        isSelected && "bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
                       )}>
-                        {doc.title}
-                      </p>
-                      <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
-                        {(doc.sourceType || "file").toUpperCase()} · {doc.chunkCount || 0} chunks
-                      </p>
-                    </div>
-                  </button>
+                        <DocumentIcon type={doc.sourceType} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn(
+                          "text-sm font-medium truncate",
+                          isSelected ? "text-[var(--color-accent)]" : "text-[var(--color-foreground)]"
+                        )}>
+                          {doc.title}
+                        </p>
+                        <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+                          {(doc.sourceType || "file").toUpperCase()} · {doc.chunkCount || 0} chunks
+                        </p>
+                      </div>
+                    </button>
+                  </div>
                 </li>
               );
             })}
