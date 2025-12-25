@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { createDocument, type CreateDocumentRequest } from "@/lib/api";
+import { createDocument, uploadPdfDocument, type CreateDocumentRequest } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface UploadDialogProps {
@@ -12,19 +12,22 @@ interface UploadDialogProps {
   onSuccess: () => void;
 }
 
-type ProcessingStep = "idle" | "fetching" | "analyzing" | "embedding" | "done";
+type ProcessingStep = "idle" | "uploading" | "fetching" | "extracting" | "analyzing" | "embedding" | "done";
+type UploadMode = "text" | "url" | "pdf";
 
 const STEP_DURATION_MS = 8000; // Estimated time per step
 
 export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: UploadDialogProps) {
   const t = useTranslations("chat");
-  const [mode, setMode] = useState<"text" | "url">("text");
+  const [mode, setMode] = useState<UploadMode>("text");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [url, setUrl] = useState("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [processingStep, setProcessingStep] = useState<ProcessingStep>("idle");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Simulate step progression for visual feedback
   useEffect(() => {
@@ -33,17 +36,22 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
       return;
     }
 
-    // Start with fetching (for URL) or analyzing (for text)
-    setProcessingStep(mode === "url" ? "fetching" : "analyzing");
-
     const timers: NodeJS.Timeout[] = [];
 
-    if (mode === "url") {
+    if (mode === "pdf") {
+      // PDF mode: uploading -> extracting -> analyzing -> embedding
+      setProcessingStep("uploading");
+      timers.push(setTimeout(() => setProcessingStep("extracting"), STEP_DURATION_MS * 0.5));
+      timers.push(setTimeout(() => setProcessingStep("analyzing"), STEP_DURATION_MS * 1.5));
+      timers.push(setTimeout(() => setProcessingStep("embedding"), STEP_DURATION_MS * 2.5));
+    } else if (mode === "url") {
       // URL mode: fetching -> analyzing -> embedding
+      setProcessingStep("fetching");
       timers.push(setTimeout(() => setProcessingStep("analyzing"), STEP_DURATION_MS));
       timers.push(setTimeout(() => setProcessingStep("embedding"), STEP_DURATION_MS * 2));
     } else {
       // Text mode: analyzing -> embedding
+      setProcessingStep("analyzing");
       timers.push(setTimeout(() => setProcessingStep("embedding"), STEP_DURATION_MS));
     }
 
@@ -53,7 +61,8 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
   const handleSubmit = async () => {
     setError(null);
 
-    if (!title.trim()) {
+    // PDF mode doesn't require title (uses filename)
+    if (mode !== "pdf" && !title.trim()) {
       setError(t("upload.errors.titleRequired"));
       return;
     }
@@ -68,16 +77,25 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
       return;
     }
 
+    if (mode === "pdf" && !pdfFile) {
+      setError(t("upload.errors.fileRequired"));
+      return;
+    }
+
     setLoading(true);
 
-    const request: CreateDocumentRequest = {
-      collectionId,
-      title: title.trim(),
-      sourceType: mode === "text" ? "markdown" : "url",
-      ...(mode === "text" ? { content: content.trim() } : { sourceUrl: url.trim() }),
-    };
-
-    const result = await createDocument(request);
+    let result;
+    if (mode === "pdf" && pdfFile) {
+      result = await uploadPdfDocument(collectionId, title.trim() || pdfFile.name.replace(/\.pdf$/i, ""), pdfFile);
+    } else {
+      const request: CreateDocumentRequest = {
+        collectionId,
+        title: title.trim(),
+        sourceType: mode === "text" ? "markdown" : "url",
+        ...(mode === "text" ? { content: content.trim() } : { sourceUrl: url.trim() }),
+      };
+      result = await createDocument(request);
+    }
 
     setLoading(false);
     setProcessingStep("idle");
@@ -90,6 +108,7 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
         setTitle("");
         setContent("");
         setUrl("");
+        setPdfFile(null);
         onSuccess();
         onClose();
       }, 500);
@@ -114,38 +133,33 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
             <>
               {/* Mode Toggle */}
               <div className="flex gap-2 mb-4">
-                <button
-                  onClick={() => setMode("text")}
-                  className={cn(
-                    "px-4 py-2 text-sm rounded-[var(--radius-sm)] transition-colors",
-                    mode === "text"
-                      ? "bg-[var(--color-foreground)] text-[var(--color-background)]"
-                      : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
-                  )}
-                >
-                  {t("upload.tabs.text")}
-                </button>
-                <button
-                  onClick={() => setMode("url")}
-                  className={cn(
-                    "px-4 py-2 text-sm rounded-[var(--radius-sm)] transition-colors",
-                    mode === "url"
-                      ? "bg-[var(--color-foreground)] text-[var(--color-background)]"
-                      : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
-                  )}
-                >
-                  {t("upload.tabs.url")}
-                </button>
+                {(["text", "url", "pdf"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={cn(
+                      "px-4 py-2 text-sm rounded-[var(--radius-sm)] transition-colors",
+                      mode === m
+                        ? "bg-[var(--color-foreground)] text-[var(--color-background)]"
+                        : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+                    )}
+                  >
+                    {t(`upload.tabs.${m}`)}
+                  </button>
+                ))}
               </div>
 
-              {/* Title */}
+              {/* Title (optional for PDF) */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">{t("upload.titleLabel")}</label>
+                <label className="block text-sm font-medium mb-1">
+                  {t("upload.titleLabel")}
+                  {mode === "pdf" && <span className="text-[var(--color-muted-foreground)] ml-1">({t("upload.optional")})</span>}
+                </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder={t("upload.titlePlaceholder")}
+                  placeholder={mode === "pdf" ? t("upload.titlePlaceholderPdf") : t("upload.titlePlaceholder")}
                   className={cn(
                     "w-full px-4 py-2",
                     "bg-[var(--color-muted)] border border-[var(--color-border)]",
@@ -155,8 +169,8 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
                 />
               </div>
 
-              {/* Content or URL */}
-              {mode === "text" ? (
+              {/* Content / URL / PDF */}
+              {mode === "text" && (
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-1">{t("upload.content")}</label>
                   <textarea
@@ -173,7 +187,8 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
                     )}
                   />
                 </div>
-              ) : (
+              )}
+              {mode === "url" && (
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-1">{t("upload.url")}</label>
                   <input
@@ -188,6 +203,41 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
                       "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
                     )}
                   />
+                </div>
+              )}
+              {mode === "pdf" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">{t("upload.file")}</label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className={cn(
+                      "border-2 border-dashed rounded-[var(--radius-sm)] p-6 text-center cursor-pointer transition-colors",
+                      "hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/5",
+                      pdfFile ? "border-[var(--color-accent)] bg-[var(--color-accent)]/5" : "border-[var(--color-border)]"
+                    )}
+                  >
+                    {pdfFile ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-2xl">📄</span>
+                        <span className="font-medium">{pdfFile.name}</span>
+                        <span className="text-sm text-[var(--color-muted-foreground)]">
+                          ({(pdfFile.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                      </div>
+                    ) : (
+                      <div>
+                        <span className="text-3xl block mb-2">📤</span>
+                        <p className="text-sm text-[var(--color-muted-foreground)]">{t("upload.filePlaceholder")}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -231,10 +281,17 @@ export function UploadDialog({ collectionId, isOpen, onClose, onSuccess }: Uploa
 }
 
 // Processing status component with animated steps
-function ProcessingStatus({ step, mode }: { step: ProcessingStep; mode: "text" | "url" }) {
+function ProcessingStatus({ step, mode }: { step: ProcessingStep; mode: UploadMode }) {
   const t = useTranslations("chat");
 
-  const steps = mode === "url"
+  const steps = mode === "pdf"
+    ? [
+        { id: "uploading", label: t("upload.steps.uploading"), icon: "📤" },
+        { id: "extracting", label: t("upload.steps.extracting"), icon: "📄" },
+        { id: "analyzing", label: t("upload.steps.analyzing"), icon: "🔍" },
+        { id: "embedding", label: t("upload.steps.embedding"), icon: "🧠" },
+      ]
+    : mode === "url"
     ? [
         { id: "fetching", label: t("upload.steps.fetching"), icon: "🌐" },
         { id: "analyzing", label: t("upload.steps.analyzing"), icon: "🔍" },

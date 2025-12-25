@@ -186,6 +186,42 @@ export async function createDocument(
   });
 }
 
+export async function uploadPdfDocument(
+  collectionId: string,
+  title: string,
+  file: File
+): Promise<ApiResponse<{ document: DocumentResponse }>> {
+  try {
+    const token = getAuthToken();
+    const formData = new FormData();
+    formData.append("collectionId", collectionId);
+    formData.append("title", title);
+    formData.append("file", file);
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE}/api/v1/documents/upload-pdf`, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return { error: errorData.error || `HTTP ${response.status}` };
+    }
+
+    const data = await response.json();
+    return { data };
+  } catch (error) {
+    console.error("PDF Upload Error:", error);
+    return { error: "Network error" };
+  }
+}
+
 export async function getDocuments(
   collectionId: string
 ): Promise<ApiResponse<{ documents: Document[] }>> {

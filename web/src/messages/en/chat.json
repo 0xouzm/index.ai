@@ -46,20 +46,27 @@
     "title": "Add Document",
     "titleLabel": "Title",
     "titlePlaceholder": "Document title",
+    "titlePlaceholderPdf": "Use filename if empty",
+    "optional": "optional",
     "tabs": {
-      "text": "Text / Markdown",
-      "url": "From URL"
+      "text": "Text",
+      "url": "URL",
+      "pdf": "PDF"
     },
     "content": "Content",
     "contentPlaceholder": "Paste your text or markdown content here...",
     "url": "URL",
     "urlPlaceholder": "https://example.com/article",
+    "file": "PDF File",
+    "filePlaceholder": "Click or drag to upload PDF",
     "buttons": {
       "add": "Add Document",
       "adding": "Processing...",
       "cancel": "Cancel"
     },
     "steps": {
+      "uploading": "Uploading PDF file",
+      "extracting": "Extracting text from PDF",
       "fetching": "Fetching content from URL",
       "analyzing": "Analyzing with AI (generating summary & topics)",
       "embedding": "Creating embeddings for search",
@@ -68,7 +75,8 @@
     "errors": {
       "titleRequired": "Title is required",
       "contentRequired": "Content is required",
-      "urlRequired": "URL is required"
+      "urlRequired": "URL is required",
+      "fileRequired": "Please select a PDF file"
     }
   },
   "info": {

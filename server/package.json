@@ -11,7 +11,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "hono": "^4.7.0"
+    "@mozilla/readability": "^0.6.0",
+    "hono": "^4.7.0",
+    "linkedom": "^0.18.12",
+    "unpdf": "^1.4.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241230.0",

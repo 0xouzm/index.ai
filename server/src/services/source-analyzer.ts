@@ -13,7 +13,7 @@ export interface SourceAnalysisResult {
 
 // Kimi API (Moonshot AI) - OpenAI compatible
 const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
-const KIMI_MODEL = "moonshot-v1-8k"; // Use faster model for source analysis
+const KIMI_MODEL = "moonshot-v1-32k"; // Use 32k model to handle long documents
 
 const ANALYSIS_PROMPT = `You are a document analyzer. Analyze the following document and provide:
 
@@ -21,12 +21,29 @@ const ANALYSIS_PROMPT = `You are a document analyzer. Analyze the following docu
 
 2. **Topics**: Extract 3-6 key topic tags that best represent the document's main themes. Each tag should be 2-5 words. Write tags in the same language as the document.
 
-3. **Processed Content**: Clean and format the document content:
-   - Remove navigation elements, ads, footers, headers
-   - Fix formatting issues (extra whitespace, broken lines)
-   - Keep all meaningful content intact
-   - Preserve headings, lists, and structure
-   - DO NOT summarize or shorten - keep full content
+3. **Processed Content**: Clean and optimize the document content by:
+   - REMOVE completely:
+     * User comments and discussion sections
+     * Social sharing buttons and widget text (Share, Tweet, Like, Follow)
+     * Advertisement content and promotional banners
+     * Newsletter subscription prompts and email signup forms
+     * Cookie consent notices and privacy policy links
+     * Navigation menus, breadcrumbs, and sidebar links
+     * "Related articles", "You may also like", "Read more" sections
+     * Author bio sections at the end of articles
+     * Footer links, copyright notices, and site disclaimers
+     * Platform-specific UI elements (Substack subscribe, Medium claps, etc.)
+     * "X replies", "X comments", "Share2 replies" type indicators
+   - KEEP intact:
+     * Main article/document body content
+     * Headings and subheadings (preserve hierarchy)
+     * Code examples, technical content, and data
+     * Lists, tables, and structured information
+     * Inline citations, references, and quotes
+   - FIX formatting:
+     * Extra whitespace and broken lines
+     * Malformed markdown syntax
+   - DO NOT summarize or shorten the main content - keep it complete
 
 Respond in JSON format:
 {
@@ -56,8 +73,8 @@ export async function analyzeSource(
   }
 
   try {
-    // Truncate content to fit 8k model (roughly 6k chars for input, leave room for output)
-    const maxContentLength = 12000;
+    // Truncate content to fit 32k model (leave room for prompt and output)
+    const maxContentLength = 50000;
     const truncatedContent =
       content.length > maxContentLength
         ? content.slice(0, maxContentLength) + "\n\n[Content truncated...]"
@@ -71,7 +88,7 @@ export async function analyzeSource(
       },
       body: JSON.stringify({
         model: KIMI_MODEL,
-        max_tokens: 4096,
+        max_tokens: 16384,
         temperature: 0.3,
         response_format: { type: "json_object" },
         messages: [

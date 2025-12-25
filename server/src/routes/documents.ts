@@ -331,3 +331,109 @@ documentsRouter.post("/:id/analyze", optionalAuthMiddleware(), async (c) => {
     return c.json({ error: "Failed to analyze document" }, 500);
   }
 });
+
+// Upload PDF document (multipart/form-data)
+documentsRouter.post("/upload-pdf", optionalAuthMiddleware(), async (c) => {
+  try {
+    const formData = await c.req.formData();
+    const collectionId = formData.get("collectionId");
+    const title = formData.get("title");
+    const fileEntry = formData.get("file");
+
+    if (!collectionId || typeof collectionId !== "string") {
+      return c.json({ error: "Missing required field: collectionId" }, 400);
+    }
+
+    // In Cloudflare Workers, File is a subclass of Blob
+    if (!fileEntry || typeof fileEntry === "string") {
+      return c.json({ error: "Missing required field: file" }, 400);
+    }
+
+    const file = fileEntry as File;
+
+    // Validate file type
+    if (!file.name.endsWith(".pdf") && file.type !== "application/pdf") {
+      return c.json({ error: "Only PDF files are allowed" }, 400);
+    }
+
+    // Get collection
+    const collection = await c.env.DB.prepare(
+      "SELECT id, vector_namespace FROM collections WHERE id = ?"
+    )
+      .bind(collectionId)
+      .first<{ id: string; vector_namespace: string }>();
+
+    if (!collection) {
+      return c.json({ error: "Collection not found" }, 404);
+    }
+
+    // Generate IDs
+    const docId = `doc-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    const r2Key = `pdf/${collectionId}/${docId}/${file.name}`;
+    const titleStr = typeof title === "string" ? title.trim() : "";
+    const docTitle = titleStr || file.name.replace(/\.pdf$/i, "");
+
+    // Upload to R2
+    if (!c.env.DOCUMENTS) {
+      return c.json({ error: "R2 storage not configured" }, 500);
+    }
+    await c.env.DOCUMENTS.put(r2Key, file);
+
+    // Insert document record
+    await c.env.DB.prepare(
+      `INSERT INTO documents (id, collection_id, title, source_type, r2_key, status, created_at, updated_at)
+       VALUES (?, ?, ?, 'pdf', ?, 'processing', datetime('now'), datetime('now'))`
+    )
+      .bind(docId, collectionId, docTitle, r2Key)
+      .run();
+
+    // Process document
+    const result = await processDocument(
+      {
+        id: docId,
+        collectionId,
+        namespace: collection.vector_namespace,
+        title: docTitle,
+        sourceType: "pdf",
+        r2Key,
+      },
+      c.env
+    );
+
+    // Update status based on result
+    if (result.success) {
+      await c.env.DB.prepare(
+        `UPDATE documents
+         SET chunk_count = ?, token_count = ?, status = 'completed', updated_at = datetime('now')
+         WHERE id = ?`
+      )
+        .bind(result.chunkCount, result.tokenCount, docId)
+        .run();
+
+      await c.env.DB.prepare(
+        `UPDATE collections
+         SET source_count = source_count + 1, updated_at = datetime('now')
+         WHERE id = ?`
+      )
+        .bind(collectionId)
+        .run();
+    } else {
+      await c.env.DB.prepare(
+        `UPDATE documents SET status = 'failed', updated_at = datetime('now') WHERE id = ?`
+      )
+        .bind(docId)
+        .run();
+
+      return c.json({ error: result.error || "Failed to process PDF" }, 500);
+    }
+
+    const document = await c.env.DB.prepare("SELECT * FROM documents WHERE id = ?")
+      .bind(docId)
+      .first();
+
+    return c.json({ document: toCamelCase(document) }, 201);
+  } catch (error) {
+    console.error("Error uploading PDF:", error);
+    return c.json({ error: "Failed to upload PDF" }, 500);
+  }
+});
