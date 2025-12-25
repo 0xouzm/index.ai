@@ -7,7 +7,7 @@
   "nav": {
     "signIn": "Sign In",
     "signOut": "Sign Out",
-    "create": "+ Create",
+    "create": "Create",
     "home": "Home"
   },
   "footer": {

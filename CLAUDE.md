@@ -33,6 +33,15 @@ pnpm typecheck            # TypeScript check
 pnpm db:migrate:remote    # Apply migrations to production
 ```
 
+## Development Server Rules
+
+- **Frontend dev server MUST run on port 3000** - CORS only allows localhost:3000
+- If port 3000 is occupied, kill the process and restart:
+  ```bash
+  lsof -ti:3000 | xargs kill -9 && cd web && pnpm dev
+  ```
+- Never add additional localhost ports to CORS config
+
 ## Project Structure
 
 ```

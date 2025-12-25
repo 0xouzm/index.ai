@@ -5,13 +5,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/auth-provider";
 import { LocaleSwitcher } from "./locale-switcher";
-
-const channels = [
-  { name: "Programming", slug: "programming-ai", emoji: "💻" },
-  { name: "Travel", slug: "travel", emoji: "✈️" },
-  { name: "Fitness", slug: "fitness", emoji: "💪" },
-  { name: "Nutrition", slug: "nutrition", emoji: "🥗" },
-];
+import { ChannelNav } from "./channel-nav";
 
 export function Header() {
   const t = useTranslations("common");
@@ -31,24 +25,8 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-1 bg-[var(--color-muted)] rounded-full px-1.5 py-1.5">
-            {channels.map((channel) => (
-              <Link
-                key={channel.slug}
-                href={`/c/${channel.slug}`}
-                className={cn(
-                  "px-4 py-2 text-sm font-medium rounded-full",
-                  "text-[var(--color-muted-foreground)]",
-                  "hover:text-[var(--color-foreground)] hover:bg-[var(--color-background)]",
-                  "transition-all duration-200"
-                )}
-              >
-                <span className="mr-1.5">{channel.emoji}</span>
-                {channel.name}
-              </Link>
-            ))}
-          </nav>
+          {/* Navigation - 4chan style */}
+          <ChannelNav variant="header" className="hidden md:flex" />
 
           {/* Actions */}
           <div className="flex items-center gap-3">

@@ -16,19 +16,6 @@ interface ChannelWithCollections {
   collections: Collection[];
 }
 
-const channelEmojis: Record<string, string> = {
-  "programming-ai": "💻",
-  travel: "✈️",
-  fitness: "💪",
-  nutrition: "🥗",
-};
-
-const channelColors: Record<string, string> = {
-  "programming-ai": "from-blue-400 to-indigo-500",
-  travel: "from-cyan-400 to-blue-500",
-  fitness: "from-teal-400 to-cyan-500",
-  nutrition: "from-emerald-400 to-teal-500",
-};
 
 export default function HomePage() {
   const t = useTranslations("home");
@@ -78,6 +65,8 @@ export default function HomePage() {
         ...c,
         channelSlug: channel.slug,
         channelName: channel.name,
+        channelEmoji: channel.emoji || "📚",
+        channelColor: channel.color || "from-gray-400 to-gray-500",
       }))
     )
     .sort(
@@ -128,7 +117,7 @@ export default function HomePage() {
                       "transition-all duration-200 hover:-translate-y-0.5"
                     )}
                   >
-                    <span>{channelEmojis[channel.slug] || "📚"}</span>
+                    <span>{channel.emoji || "📚"}</span>
                     {channel.name}
                   </Link>
                 ))}
@@ -165,7 +154,7 @@ export default function HomePage() {
                     className={cn(
                       "absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 blur-2xl",
                       "bg-gradient-to-br",
-                      channelColors[collection.channelSlug] || "from-gray-400 to-gray-500"
+                      collection.channelColor
                     )}
                   />
 
@@ -173,7 +162,7 @@ export default function HomePage() {
                     {/* Channel badge */}
                     <div className="flex items-center gap-2 mb-4">
                       <span className="w-8 h-8 rounded-lg bg-[var(--color-muted)] flex items-center justify-center text-base">
-                        {channelEmojis[collection.channelSlug] || "📚"}
+                        {collection.channelEmoji}
                       </span>
                       <span className="text-xs font-medium text-[var(--color-muted-foreground)]">
                         {collection.channelName}
@@ -222,7 +211,14 @@ export default function HomePage() {
             {t("sections.browseByChannel")}
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div
+            className={cn(
+              "grid gap-6",
+              channelsData.length <= 4 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+              channelsData.length > 4 && channelsData.length <= 6 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+              channelsData.length > 6 && "grid-cols-1 md:grid-cols-3 lg:grid-cols-4"
+            )}
+          >
             {channelsData.map(({ channel, collections }) => (
               <div
                 key={channel.id}
@@ -235,11 +231,11 @@ export default function HomePage() {
                   <div
                     className={cn(
                       "w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br shadow-sm",
-                      channelColors[channel.slug] || "from-gray-400 to-gray-500"
+                      channel.color || "from-gray-400 to-gray-500"
                     )}
                   >
                     <span className="filter drop-shadow-sm">
-                      {channelEmojis[channel.slug] || "📚"}
+                      {channel.emoji || "📚"}
                     </span>
                   </div>
                   <div>
@@ -341,7 +337,7 @@ export default function HomePage() {
                   href={`/c/${channel.slug}`}
                   className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
                 >
-                  {channelEmojis[channel.slug]} {channel.name}
+                  {channel.emoji} {channel.name}
                 </Link>
               ))}
             </nav>

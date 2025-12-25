@@ -4,6 +4,9 @@ export interface Channel {
   name: string;
   slug: string;
   description: string;
+  emoji: string;
+  color: string;
+  sortOrder: number;
   collectionCount: number;
 }
 

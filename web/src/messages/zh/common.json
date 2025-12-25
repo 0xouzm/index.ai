@@ -7,7 +7,7 @@
   "nav": {
     "signIn": "登录",
     "signOut": "退出",
-    "create": "+ 创建",
+    "create": "创建",
     "home": "首页"
   },
   "footer": {

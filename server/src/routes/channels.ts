@@ -8,7 +8,7 @@ export const channelsRouter = new Hono<AppEnv>();
 channelsRouter.get("/", async (c) => {
   try {
     const { results } = await c.env.DB.prepare(
-      "SELECT * FROM channels ORDER BY name"
+      "SELECT * FROM channels ORDER BY sort_order ASC, name ASC"
     ).all();
 
     return c.json({ channels: toCamelCase(results) });
