@@ -38,8 +38,9 @@ function extractCitations(
     if (docIdx >= 0 && docIdx < chunks.length && !seenDocs.has(docIdx)) {
       seenDocs.add(docIdx);
       const chunk = chunks[docIdx];
-      const contentPreview = chunk.content.length > 500
-        ? chunk.content.substring(0, 500) + "..."
+      // Provide more context - up to 1000 chars to show complete paragraphs
+      const contentPreview = chunk.content.length > 1000
+        ? chunk.content.substring(0, 1000) + "..."
         : chunk.content;
       citations.push({
         documentId: chunk.documentId,
