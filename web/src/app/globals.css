@@ -6,29 +6,12 @@
    Inspired by nomads.com minimalism with soft blue tones
    ============================================ */
 
-/* Custom fonts - Clean, friendly humanist sans-serif */
-@font-face {
-  font-family: 'Nunito';
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/nunito/v26/XRXI3I6Li01BKofiOc5wtlZ2di8HDLshdTk3j77e.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Outfit';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/outfit/v11/QGYyz_MVcBeNP4NjuGObqx1XmO1I4TC1C4G-EiAou6Y.woff2') format('woff2');
-}
-
 /* Theme variables */
 @theme {
-  /* Typography - Friendly, approachable */
-  --font-display: 'Outfit', system-ui, sans-serif;
-  --font-body: 'Nunito', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* Typography - Using next/font CSS variables */
+  --font-display: var(--font-outfit), system-ui, sans-serif;
+  --font-body: var(--font-nunito), system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
 
   /* Colors - Serene Sky Blue Palette */
   --color-background: #FAFCFE;

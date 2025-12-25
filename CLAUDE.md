@@ -103,6 +103,16 @@ NEXT_PUBLIC_API_URL=https://api.index.ai   # Always connects to remote backend
 - `OPENAI_API_KEY`
 - `ANTHROPIC_API_KEY`
 
+## Design Style
+
+Design should lean towards **Xiaohongshu (RED)** style:
+- Clean, minimalist aesthetic with generous whitespace
+- Soft, rounded corners and pill-shaped buttons
+- Card-based layouts with subtle shadows
+- Friendly, approachable typography (Outfit for headings, Nunito for body)
+- Serene sky blue color palette (#4A9EE8 accent)
+- 4chan-style compact navigation for channels (emoji + name, separated by `/`)
+
 ## Key Conventions
 
 1. **All UI text must be in English** - code and user-facing content
