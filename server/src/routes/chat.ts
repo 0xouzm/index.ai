@@ -14,6 +14,7 @@ interface QueryRequest {
 }
 
 interface Citation {
+  sourceIndex: number;
   documentId: string;
   documentTitle: string;
   chunkContent: string;

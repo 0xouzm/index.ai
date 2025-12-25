@@ -136,7 +136,8 @@ export function InlineCitation({ citation, index }: InlineCitationProps) {
     ? normalizedContent.slice(0, 800) + "..."
     : normalizedContent || t("message.noContent");
 
-  const displayNum = index + 1;
+  // Use sourceIndex directly for display (already 1-based)
+  const displayNum = citation.sourceIndex;
 
   return (
     <span

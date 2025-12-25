@@ -5,6 +5,7 @@ import type { AppEnv } from "./types/env";
 import { authRouter } from "./routes/auth";
 import { channelsRouter } from "./routes/channels";
 import { collectionsRouter } from "./routes/collections";
+import { documentsRouter } from "./routes/documents";
 import { chatRouter } from "./routes/chat";
 
 const app = new Hono<AppEnv>();
@@ -45,6 +46,7 @@ app.get("/", (c) => {
 app.route("/api/v1/auth", authRouter);
 app.route("/api/v1/channels", channelsRouter);
 app.route("/api/v1/collections", collectionsRouter);
+app.route("/api/v1/documents", documentsRouter);
 app.route("/api/v1/chat", chatRouter);
 
 // 404 handler

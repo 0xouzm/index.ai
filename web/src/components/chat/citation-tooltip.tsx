@@ -103,7 +103,7 @@ export function CitationTooltip({ citation, index, className }: CitationTooltipP
           {/* Footer - Optional link */}
           <div className="px-4 py-2 border-t border-[var(--color-border)] bg-[var(--color-muted)]/30">
             <p className="text-xs text-[var(--color-muted-foreground)]">
-              Source #{index + 1}
+              Source #{citation.sourceIndex}
             </p>
           </div>
         </div>

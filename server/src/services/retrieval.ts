@@ -18,7 +18,7 @@ export interface RetrievalResult {
 }
 
 const RELEVANCE_THRESHOLD = 0.3; // Lowered for testing
-const TOP_K = 10;
+const TOP_K = 15; // Increased from 10 for broader context coverage
 
 export async function retrieveChunks(
   query: string,

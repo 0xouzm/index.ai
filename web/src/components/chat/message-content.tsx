@@ -16,6 +16,15 @@ function normalizeCitations(text: string): string {
     .replace(/\bDoc(?:ument)?\s*(?!\d)/gi, "");
 }
 
+// Build a lookup map from sourceIndex to citation
+function buildCitationMap(citations: Citation[]): Map<number, Citation> {
+  const map = new Map<number, Citation>();
+  for (const citation of citations) {
+    map.set(citation.sourceIndex, citation);
+  }
+  return map;
+}
+
 // Parse content and replace citation references with interactive components
 // Returns mixed array of strings (to be formatted) and ReactNodes (citations)
 function parseContentWithCitations(content: string, citations: Citation[]): (string | ReactNode)[] {
@@ -26,6 +35,9 @@ function parseContentWithCitations(content: string, citations: Citation[]): (str
     // Remove citation markers like [1], [2] when no citations data
     return [normalized.replace(/\[\d+\]/g, "")];
   }
+
+  // Build lookup map by sourceIndex for O(1) access
+  const citationMap = buildCitationMap(citations);
 
   const result: (string | ReactNode)[] = [];
   // Simple pattern - only match normalized [N] format
@@ -41,13 +53,20 @@ function parseContentWithCitations(content: string, citations: Citation[]): (str
       result.push(normalized.slice(lastIndex, match.index));
     }
 
-    const citationIndex = parseInt(match[1], 10) - 1;
+    const sourceIndex = parseInt(match[1], 10); // 1-based index
+    const citation = citationMap.get(sourceIndex);
 
-    if (citationIndex >= 0 && citationIndex < citations.length) {
-      // Valid citation - show badge
-      result.push(<InlineCitation key={`citation-${keyIndex++}`} citation={citations[citationIndex]} index={citationIndex} />);
+    if (citation) {
+      // Valid citation - show badge with sourceIndex as display number
+      result.push(
+        <InlineCitation
+          key={`citation-${keyIndex++}`}
+          citation={citation}
+          index={sourceIndex - 1} // Convert to 0-based for display consistency
+        />
+      );
     }
-    // Invalid citation (out of range) - just skip it, don't keep the text
+    // Invalid citation (not found) - just skip it, don't keep the text
 
     lastIndex = match.index + match[0].length;
   }

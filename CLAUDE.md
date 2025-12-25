@@ -18,12 +18,8 @@ Index.ai is an AI-powered vertical knowledge portal - a full-stack monorepo with
 ## Development Commands
 
 ```bash
-# Start all services (frontend:3000, backend:8787)
+# Start frontend (connects to remote backend)
 ./scripts/dev.sh
-
-# Start individually
-./scripts/dev-web.sh      # Frontend only
-./scripts/dev-server.sh   # Backend only
 
 # Frontend (in web/)
 pnpm dev                  # Development with Turbopack
@@ -31,13 +27,9 @@ pnpm build                # Production build
 pnpm lint                 # ESLint
 pnpm pages:deploy         # Deploy to Cloudflare Pages
 
-# Backend (in server/)
-pnpm dev                  # Local Workers development
-pnpm deploy               # Deploy to Cloudflare Workers
+# Backend (in server/) - deploy only, no local development
+pnpm run deploy           # Deploy to Cloudflare Workers
 pnpm typecheck            # TypeScript check
-
-# Database (in server/)
-pnpm db:migrate:local     # Apply migrations locally
 pnpm db:migrate:remote    # Apply migrations to production
 ```
 
@@ -94,8 +86,7 @@ All API routes are versioned under `/api/v1/`:
 
 ### Frontend (.env)
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8787  # Dev
-NEXT_PUBLIC_API_URL=https://api.index.ai   # Prod
+NEXT_PUBLIC_API_URL=https://api.index.ai   # Always connects to remote backend
 ```
 
 ### Backend Secrets (via wrangler secret put)
@@ -111,7 +102,6 @@ NEXT_PUBLIC_API_URL=https://api.index.ai   # Prod
 4. **Directory limits**: Max 8 files per directory (create subdirectories if exceeded)
 5. **ESM only** - no CommonJS modules
 6. **Path aliases**: Use `@/` to import from `src/` in both web and server
-7. **No auto-deploy** - all development and testing must be done locally, do not run deploy commands
 
 ## Naming Convention (snake_case vs camelCase)
 

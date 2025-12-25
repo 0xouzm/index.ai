@@ -71,6 +71,7 @@ export interface ChatMessage {
 }
 
 export interface Citation {
+  sourceIndex: number; // 1-based index matching [N] in the answer
   documentId: string;
   documentTitle: string;
   chunkContent: string;

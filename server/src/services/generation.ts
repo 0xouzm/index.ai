@@ -4,6 +4,7 @@ import { buildContext, buildSystemPrompt } from "./prompt-builder";
 import { normalizeCitations } from "../utils/citation-normalizer";
 
 export interface Citation {
+  sourceIndex: number; // 1-based index matching [N] in the answer
   documentId: string;
   documentTitle: string;
   chunkContent: string;
@@ -17,7 +18,7 @@ export interface GenerationResult {
 
 // Kimi API (Moonshot AI) - OpenAI compatible
 const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
-const KIMI_THINKING_MODEL = "kimi-thinking-preview";
+const KIMI_MODEL = "moonshot-v1-32k";
 
 // Extract citations from answer text
 function extractCitations(
@@ -34,7 +35,8 @@ function extractCitations(
   const seenDocs = new Set<number>();
 
   for (const match of normalized.matchAll(citationRegex)) {
-    const docIdx = parseInt(match[1], 10) - 1;
+    const sourceIndex = parseInt(match[1], 10); // 1-based index
+    const docIdx = sourceIndex - 1; // Convert to 0-based for array access
     if (docIdx >= 0 && docIdx < chunks.length && !seenDocs.has(docIdx)) {
       seenDocs.add(docIdx);
       const chunk = chunks[docIdx];
@@ -43,6 +45,7 @@ function extractCitations(
         ? chunk.content.substring(0, 1000) + "..."
         : chunk.content;
       citations.push({
+        sourceIndex, // 1-based index matching [N] in the answer
         documentId: chunk.documentId,
         documentTitle: documentTitles.get(chunk.documentId) || "Unknown",
         chunkContent: contentPreview,
@@ -77,7 +80,7 @@ export async function generateAnswer(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: KIMI_THINKING_MODEL,
+      model: KIMI_MODEL,
       max_tokens: 8192,
       temperature: 0.8,
       messages: [
@@ -119,7 +122,7 @@ export async function generateSimpleAnswer(question: string, env: Env): Promise<
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: KIMI_THINKING_MODEL,
+      model: KIMI_MODEL,
       max_tokens: 1024,
       temperature: 0.7,
       messages: [{ role: "user", content: question }],
