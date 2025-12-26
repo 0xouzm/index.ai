@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -13,7 +13,7 @@ export const runtime = "edge";
 export default function AuthPage() {
   const t = useTranslations("auth");
   const router = useRouter();
-  const { login, register, user } = useAuth();
+  const { login, register, user, isLoading } = useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +25,23 @@ export default function AuthPage() {
     confirmPassword: "",
   });
 
-  if (user) {
-    router.push("/");
-    return null;
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/");
+    }
+  }, [isLoading, user, router]);
+
+  // Show loading while checking auth or redirecting
+  if (isLoading || user) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-[var(--color-muted-foreground)]">{t("loading")}</p>
+        </div>
+      </div>
+    );
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
