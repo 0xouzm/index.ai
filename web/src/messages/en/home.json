@@ -1,17 +1,17 @@
 {
   "hero": {
     "title": "Your AI Knowledge Companion",
-    "tagline": "AI-Powered Knowledge Portal — Explore curated collections across domains"
+    "tagline": "AI-Powered Knowledge Portal — Explore curated notebooks across domains"
   },
   "sections": {
     "browseByChannel": "Browse by Channel",
-    "latestCollections": "Latest Collections",
+    "latestCollections": "Latest Notebooks",
     "moreToExplore": "More to Explore",
     "quickActions": "Quick Actions"
   },
   "empty": {
-    "noChannels": "No channels available. Connect to API to see collections.",
-    "noCollections": "No collections"
+    "noChannels": "No channels available. Connect to API to see notebooks.",
+    "noCollections": "No notebooks"
   },
   "collection": {
     "by": "By",
@@ -19,8 +19,8 @@
   },
   "cta": {
     "title": "Create Your Knowledge Base",
-    "description": "Curate sources, ask questions, and get AI-powered insights from your collection.",
-    "createCollection": "Create Collection",
+    "description": "Curate sources, ask questions, and get AI-powered insights from your notebook.",
+    "createCollection": "Create Notebook",
     "signInRegister": "Sign In / Register"
   }
 }

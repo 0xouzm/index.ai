@@ -1,32 +1,44 @@
 {
-  "title": "Create Collection",
-  "subtitle": "Create a new knowledge collection to organize your documents",
+  "title": "Create Notebook",
+  "subtitle": "Create a new knowledge notebook to organize your documents",
   "loginRequired": "Login Required",
   "loginRequiredMessage": "Please login to access the management page.",
   "loginButton": "Login",
   "backToHome": "Back to Home",
   "adminMode": "Admin Mode - Full Access",
   "tabs": {
-    "collections": "Collections",
+    "collections": "Notebooks",
     "channels": "Channels"
   },
   "form": {
     "channel": "Channel *",
     "channelPlaceholder": "Select a channel",
     "titleLabel": "Title *",
-    "titlePlaceholder": "My Knowledge Collection",
+    "titlePlaceholder": "My Knowledge Notebook",
     "slug": "URL Slug *",
-    "slugPlaceholder": "my-knowledge-collection",
+    "slugPlaceholder": "my-knowledge-notebook",
     "summary": "Summary",
-    "summaryPlaceholder": "A brief description of this collection..."
+    "summaryPlaceholder": "A brief description of this notebook..."
   },
   "buttons": {
-    "create": "Create Collection",
+    "create": "Create Notebook",
     "creating": "Creating...",
     "cancel": "Cancel"
   },
   "errors": {
     "requiredFields": "Please fill in all required fields"
   },
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "collectionsTab": {
+    "title": "Notebooks",
+    "subtitle": "Manage all notebooks",
+    "createNew": "Create New",
+    "empty": "No notebooks yet. Create one to get started.",
+    "documents": "{count} documents",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "saving": "Saving...",
+    "confirmDelete": "Are you sure you want to delete this notebook?"
+  }
 }

@@ -1,17 +1,17 @@
 {
   "hero": {
     "title": "你的 AI 知识伙伴",
-    "tagline": "AI 驱动的知识门户 — 探索各领域精选合集"
+    "tagline": "AI 驱动的知识门户 — 探索各领域精选笔记本"
   },
   "sections": {
     "browseByChannel": "按频道浏览",
-    "latestCollections": "最新合集",
+    "latestCollections": "最新笔记本",
     "moreToExplore": "更多探索",
     "quickActions": "快捷操作"
   },
   "empty": {
-    "noChannels": "暂无可用频道，请连接 API 查看合集。",
-    "noCollections": "暂无合集"
+    "noChannels": "暂无可用频道，请连接 API 查看笔记本。",
+    "noCollections": "暂无笔记本"
   },
   "collection": {
     "by": "作者",
@@ -19,7 +19,7 @@
   },
   "cta": {
     "title": "创建你的知识库",
-    "description": "整理来源，提出问题，从合集中获取 AI 驱动的洞见。",
+    "description": "整理来源，提出问题，从笔记本中获取 AI 驱动的洞见。",
     "createCollection": "创建笔记本",
     "signInRegister": "登录 / 注册"
   }

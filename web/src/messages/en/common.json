@@ -7,7 +7,7 @@
   "nav": {
     "signIn": "Sign In",
     "signOut": "Sign Out",
-    "create": "Create",
+    "create": "Create Notebook",
     "home": "Home"
   },
   "footer": {
@@ -19,7 +19,7 @@
   },
   "stats": {
     "channels": "Channels",
-    "collections": "Collections",
+    "collections": "Notebooks",
     "sources": "sources"
   },
   "actions": {

@@ -4,7 +4,7 @@
     "placeholder": "询问关于您文档的问题..."
   },
   "welcome": {
-    "greeting": "您好！我是您的 AI 助手，专为「{title}」服务。我可以帮助您探索和理解此合集中的文档。您想了解什么？"
+    "greeting": "您好！我是您的 AI 助手，专为「{title}」服务。我可以帮助您探索和理解此笔记本中的文档。您想了解什么？"
   },
   "sources": {
     "title": "来源",
@@ -27,7 +27,7 @@
   },
   "studio": {
     "title": "工作台",
-    "collectionStats": "合集统计",
+    "collectionStats": "笔记本统计",
     "totalSources": "来源总数",
     "selected": "已选",
     "activeContext": "活动上下文",
@@ -88,5 +88,5 @@
     "analyzing": "分析内容",
     "generating": "生成回复"
   },
-  "loading": "正在加载合集..."
+  "loading": "正在加载笔记本..."
 }

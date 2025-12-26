@@ -13,10 +13,10 @@
   },
   "sections": {
     "featured": "Featured",
-    "allCollections": "All Collections"
+    "allCollections": "All Notebooks"
   },
   "empty": {
-    "noCollections": "No collections in this channel yet."
+    "noCollections": "No notebooks in this channel yet."
   },
   "sort": {
     "latest": "Latest",

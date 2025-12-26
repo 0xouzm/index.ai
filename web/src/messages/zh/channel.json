@@ -13,10 +13,10 @@
   },
   "sections": {
     "featured": "精选",
-    "allCollections": "全部合集"
+    "allCollections": "全部笔记本"
   },
   "empty": {
-    "noCollections": "此频道暂无合集。"
+    "noCollections": "此频道暂无笔记本。"
   },
   "sort": {
     "latest": "最新",

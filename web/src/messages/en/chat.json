@@ -4,7 +4,7 @@
     "placeholder": "Ask about your documents..."
   },
   "welcome": {
-    "greeting": "Welcome! I'm your AI assistant for \"{title}\". I can help you explore and understand the documents in this collection. What would you like to know?"
+    "greeting": "Welcome! I'm your AI assistant for \"{title}\". I can help you explore and understand the documents in this notebook. What would you like to know?"
   },
   "sources": {
     "title": "Sources",
@@ -27,7 +27,7 @@
   },
   "studio": {
     "title": "Studio",
-    "collectionStats": "Collection Stats",
+    "collectionStats": "Notebook Stats",
     "totalSources": "Total Sources",
     "selected": "Selected",
     "activeContext": "Active Context",
@@ -88,5 +88,5 @@
     "analyzing": "Analyzing content",
     "generating": "Generating response"
   },
-  "loading": "Loading collection..."
+  "loading": "Loading notebook..."
 }

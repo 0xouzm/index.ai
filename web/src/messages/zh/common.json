@@ -7,7 +7,7 @@
   "nav": {
     "signIn": "登录",
     "signOut": "退出",
-    "create": "创建",
+    "create": "创建笔记本",
     "home": "首页"
   },
   "footer": {
@@ -19,7 +19,7 @@
   },
   "stats": {
     "channels": "频道",
-    "collections": "合集",
+    "collections": "笔记本",
     "sources": "来源"
   },
   "actions": {
