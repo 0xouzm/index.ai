@@ -20,7 +20,7 @@
   "cta": {
     "title": "创建你的知识库",
     "description": "整理来源，提出问题，从合集中获取 AI 驱动的洞见。",
-    "createCollection": "创建合集",
+    "createCollection": "创建笔记本",
     "signInRegister": "登录 / 注册"
   }
 }

@@ -1,6 +1,15 @@
 {
-  "title": "创建合集",
+  "title": "创建笔记本",
   "subtitle": "创建新的知识合集来组织您的文档",
+  "loginRequired": "需要登录",
+  "loginRequiredMessage": "请登录以访问管理页面。",
+  "loginButton": "登录",
+  "backToHome": "返回首页",
+  "adminMode": "管理员模式 - 完全访问权限",
+  "tabs": {
+    "collections": "合集",
+    "channels": "频道"
+  },
   "form": {
     "channel": "频道 *",
     "channelPlaceholder": "选择一个频道",
@@ -12,7 +21,7 @@
     "summaryPlaceholder": "简要描述此合集..."
   },
   "buttons": {
-    "create": "创建合集",
+    "create": "创建笔记本",
     "creating": "创建中...",
     "cancel": "取消"
   },

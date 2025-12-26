@@ -1,6 +1,15 @@
 {
   "title": "Create Collection",
   "subtitle": "Create a new knowledge collection to organize your documents",
+  "loginRequired": "Login Required",
+  "loginRequiredMessage": "Please login to access the management page.",
+  "loginButton": "Login",
+  "backToHome": "Back to Home",
+  "adminMode": "Admin Mode - Full Access",
+  "tabs": {
+    "collections": "Collections",
+    "channels": "Channels"
+  },
   "form": {
     "channel": "Channel *",
     "channelPlaceholder": "Select a channel",
